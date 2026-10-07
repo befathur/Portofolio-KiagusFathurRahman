@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PrinceJF - RevenueReport</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' fill='white'/%3E%3Cellipse cx='50' cy='50' rx='35' ry='10' fill='none' stroke='white' stroke-width='4'/%3E%3C/svg%3E">
+       
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+    <!-- xlsx-js-style supports cell borders, fills, fonts (community SheetJS does not) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
+    
+   <style>
+      :root {
+         --bg: #e0e5ec; --bg-soft: #e8edf3; --text: #2d3748; --text-muted: #718096;
+         --accent: #4a6cf7; --accent-soft: rgba(74, 108, 247, 0.12);
+         --success: #10b981; --warning: #f59e0b; --info: #0ea5e9; --danger: #ef4444;
+         --shadow-out: 8px 8px 16px #a3b1c6, -8px -8px 16px #ffffff;
+         --shadow-out-sm: 4px 4px 10px #a3b1c6, -4px -4px 10px #ffffff;
+         --shadow-in: inset 5px 5px 10px #a3b1c6, inset -5px -5px 10px #ffffff;
+         --shadow-in-sm: inset 3px 3px 6px #a3b1c6, inset -3px -3px 6px #ffffff;
+         --radius: 18px; --radius-sm: 12px; --radius-pill: 999px;
+         --card-bg: #e0e5ec; --table-header: #d4dbe6; --border-soft: rgba(163, 177, 198, 0.35);
+         --navbar-bg: #e0e5ec;
+      }
+      [data-theme="dark"] {
+         --bg: #1a1d24; --bg-soft: #22262f; --text: #e2e8f0; --text-muted: #94a3b8;
+         --accent: #7c9cff; --accent-soft: rgba(124, 156, 255, 0.15);
+         --success: #34d399; --warning: #fbbf24; --info: #38bdf8; --danger: #f87171;
+         --shadow-out: 8px 8px 18px #0d0f14, -8px -8px 18px #2a2f3a;
+         --shadow-out-sm: 4px 4px 12px #0d0f14, -4px -4px 12px #2a2f3a;
+         --shadow-in: inset 5px 5px 12px #0d0f14, inset -5px -5px 12px #2a2f3a;
+         --shadow-in-sm: inset 3px 3px 7px #0d0f14, inset -3px -3px 7px #2a2f3a;
+         --card-bg: #1a1d24; --table-header: #252a34; --border-soft: rgba(148, 163, 184, 0.12);
+         --navbar-bg: #1a1d24;
+      }
+      *, *::before, *::after { box-sizing: border-box; }
+      body {
+         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+         background: var(--bg) !important; color: var(--text) !important;
+         padding: 16px !important; padding-top: 96px !important;
+         min-height: 100dvh; transition: background 0.45s ease, color 0.45s ease;
+         -webkit-font-smoothing: antialiased; letter-spacing: -0.01em;
+      }
+      .navbar {
+         position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+         width: min(94%, 1180px); background: var(--navbar-bg) !important;
+         box-shadow: var(--shadow-out); border: none !important; border-radius: var(--radius);
+         padding: 10px 16px; z-index: 1030; transition: box-shadow 0.4s ease, background 0.4s ease;
+      }
+      .navbar-brand { font-weight: 700; color: var(--accent) !important; font-size: 1.25rem; letter-spacing: -0.02em; padding: 6px 12px; border-radius: var(--radius-sm); }
+      .navbar-nav .nav-link { color: var(--text) !important; font-size: 0.9rem; font-weight: 500; padding: 8px 14px !important; margin: 2px 3px; border-radius: var(--radius-sm); transition: all 0.25s ease; }
+      .navbar-nav .nav-link:hover { color: var(--accent) !important; background: var(--accent-soft); box-shadow: var(--shadow-in-sm); }
+      .navbar-nav .nav-link.active { color: var(--accent) !important; font-weight: 600; background: var(--accent-soft); box-shadow: var(--shadow-in-sm); }
+      .theme-toggle {
+         width: 42px; height: 42px; border: none; background: var(--bg); color: var(--accent);
+         border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+         box-shadow: var(--shadow-out-sm); transition: all 0.3s ease; margin-left: auto; margin-right: 10px; flex-shrink: 0;
+      }
+      .theme-toggle:hover { box-shadow: var(--shadow-in-sm); transform: scale(1.05); }
+      .theme-toggle:active { box-shadow: var(--shadow-in); }
+      .theme-toggle svg { width: 20px; height: 20px; }
+      .navbar-toggler { border: none !important; padding: 8px; border-radius: 50%; box-shadow: var(--shadow-out-sm); background: var(--bg); transition: all 0.35s ease; }
+      .navbar-toggler:focus { box-shadow: var(--shadow-in-sm); }
+      .navbar-toggler.rotated { transform: rotate(90deg); }
+      .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(74,108,247,0.85)' stroke-width='2.2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); }
+      [data-theme="dark"] .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(124,156,255,0.9)' stroke-width='2.2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); }
+      @media (max-width: 991.98px) {
+         .navbar-collapse { background: var(--bg); border-radius: var(--radius-sm); margin-top: 12px; padding: 10px; box-shadow: var(--shadow-in-sm); }
+         .navbar-nav { margin-left: 0 !important; }
+         .navbar-nav .nav-link { padding: 12px 16px !important; }
+      }
+      h1, h2, h3, .page-title, .text-primary { font-weight: 700 !important; letter-spacing: -0.03em; color: var(--text) !important; }
+      h2.text-center, h2.mb-2, h2.mb-3 { font-size: clamp(1.35rem, 4vw, 1.85rem) !important; }
+      .badge.bg-secondary, #current-datetime {
+         display: inline-block !important; background: var(--bg) !important; color: var(--text-muted) !important;
+         font-size: 0.85rem !important; font-weight: 500 !important; padding: 8px 18px !important;
+         border-radius: 999px !important; box-shadow: var(--shadow-in-sm) !important; border: none !important;
+      }
+      .btn-outline-primary, #print-pdf, .btn.btn-outline-primary {
+         background: var(--bg) !important; color: var(--accent) !important; border: none !important;
+         font-weight: 600 !important; font-size: 0.875rem !important; padding: 10px 22px !important;
+         border-radius: 999px !important; box-shadow: var(--shadow-out-sm) !important; transition: all 0.25s ease !important;
+      }
+      .btn-outline-primary:hover, #print-pdf:hover { box-shadow: var(--shadow-in-sm) !important; color: var(--accent) !important; background: var(--bg) !important; }
+      .btn-sm, .copy-table-btn, .btn-light {
+         font-size: 0.75rem !important; padding: 5px 12px !important; border-radius: var(--radius-sm) !important;
+         font-weight: 600 !important; background: var(--bg) !important; color: var(--text) !important;
+         border: none !important; box-shadow: var(--shadow-out-sm) !important;
+      }
+      .btn-sm:hover, .copy-table-btn:hover { box-shadow: var(--shadow-in-sm) !important; color: var(--accent) !important; }
+      .card, .neo-card {
+         background: var(--card-bg) !important; border: none !important; border-radius: var(--radius) !important;
+         box-shadow: var(--shadow-out) !important; overflow: hidden; color: var(--text) !important;
+      }
+      .card-header, .neo-card-header {
+         background: transparent !important; color: var(--text) !important; font-weight: 600 !important;
+         font-size: 0.95rem !important; padding: 14px 18px !important; border-bottom: none !important;
+      }
+      .card-header.bg-primary, .card-header.bg-success, .card-header.bg-info, .card-header.bg-warning,
+      .card-header.bg-danger, .card-header.bg-dark, .card-header.bg-secondary {
+         background: transparent !important; color: var(--text) !important;
+      }
+      .card-header.text-white, .card-header.text-dark { color: var(--text) !important; }
+      .card-body { padding: 12px 16px 18px !important; }
+      .table {
+         background: transparent !important; color: var(--text) !important; margin-bottom: 0;
+         --bs-table-bg: transparent; --bs-table-color: var(--text);
+         --bs-table-border-color: var(--border-soft); --bs-table-hover-bg: var(--accent-soft);
+      }
+      .table th, .table td {
+         vertical-align: middle; font-size: 0.8rem !important; color: var(--text) !important;
+         border-color: var(--border-soft) !important; padding: 0.55rem 0.65rem !important;
+         background: transparent !important;
+      }
+      .table thead th {
+         background: var(--table-header) !important; font-weight: 600 !important; font-size: 0.72rem !important;
+         text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted) !important; border: none !important;
+      }
+      .table-responsive {
+         border-radius: var(--radius-sm) !important; box-shadow: var(--shadow-in-sm) !important;
+         padding: 4px; background: var(--bg) !important;
+      }
+      .positive { color: var(--success) !important; font-weight: 600 !important; }
+      .negative { color: var(--danger) !important; font-weight: 600 !important; }
+      .grand-total-row { background: var(--accent-soft) !important; font-weight: 700 !important; }
+      .suffix-btn, .filter-btn, .btn-group .btn {
+         background: var(--bg) !important; color: var(--text) !important; border: none !important;
+         font-weight: 600 !important; font-size: 0.85rem !important; padding: 10px 18px !important;
+         border-radius: 999px !important; box-shadow: var(--shadow-out-sm) !important; transition: all 0.25s ease !important;
+      }
+      .suffix-btn:hover, .filter-btn:hover, .btn-group .btn:hover { box-shadow: var(--shadow-in-sm) !important; color: var(--accent) !important; }
+      .suffix-btn.active, .filter-btn.active, .btn-group .btn.active {
+         box-shadow: var(--shadow-in) !important; color: var(--accent) !important; background: var(--bg) !important;
+      }
+      
+      .form-control, .form-select, input, select, textarea {
+         background: var(--bg) !important;
+         color: var(--text) !important;
+         border: none !important;
+         border-radius: var(--radius-sm) !important;
+         box-shadow: var(--shadow-in-sm) !important;
+         padding: 10px 14px !important;
+         -webkit-text-fill-color: var(--text) !important;
+         caret-color: var(--text) !important;
+      }
+      .form-control:focus, .form-select:focus { box-shadow: var(--shadow-in) !important; outline: none !important; }
+
+      /* Light mode placeholders */
+      .form-control::placeholder,
+      input.form-control::placeholder,
+      input::placeholder,
+      textarea::placeholder {
+         color: #6c757d !important;
+         opacity: 1 !important;
+         -webkit-text-fill-color: #6c757d !important;
+      }
+      .form-control::-webkit-input-placeholder,
+      input::-webkit-input-placeholder {
+         color: #6c757d !important;
+         -webkit-text-fill-color: #6c757d !important;
+      }
+      .form-control::-moz-placeholder,
+      input::-moz-placeholder {
+         color: #6c757d !important;
+         opacity: 1 !important;
+      }
+
+      /* Dark mode – force white placeholders */
+      html[data-theme="dark"] .form-control::placeholder,
+      html[data-theme="dark"] input.form-control::placeholder,
+      html[data-theme="dark"] input::placeholder,
+      html[data-theme="dark"] textarea::placeholder,
+      body[data-theme="dark"] .form-control::placeholder,
+      body[data-theme="dark"] input.form-control::placeholder,
+      body[data-theme="dark"] input::placeholder,
+      body[data-theme="dark"] textarea::placeholder {
+         color: #ffffff !important;
+         opacity: 1 !important;
+         -webkit-text-fill-color: #ffffff !important;
+      }
+      html[data-theme="dark"] .form-control::-webkit-input-placeholder,
+      html[data-theme="dark"] input::-webkit-input-placeholder,
+      body[data-theme="dark"] .form-control::-webkit-input-placeholder,
+      body[data-theme="dark"] input::-webkit-input-placeholder {
+         color: #ffffff !important;
+         -webkit-text-fill-color: #ffffff !important;
+      }
+      html[data-theme="dark"] .form-control::-moz-placeholder,
+      html[data-theme="dark"] input::-moz-placeholder,
+      body[data-theme="dark"] .form-control::-moz-placeholder,
+      body[data-theme="dark"] input::-moz-placeholder {
+         color: #ffffff !important;
+         opacity: 1 !important;
+      }
+
+      html[data-theme="dark"], body[data-theme="dark"] {
+         --bs-body-color: #e2e8f0;
+         --bs-body-bg: #1a1d24;
+         --bs-secondary-color: rgba(255, 255, 255, 0.85);
+         --bs-tertiary-color: rgba(255, 255, 255, 0.65);
+         color-scheme: dark;
+      }
+
+      .form-select {
+         color: var(--text) !important;
+      }
+      .form-select option {
+         background: var(--bg);
+         color: var(--text);
+      }
+
+
+.report-link, a.report-link {
+         display: block; background: var(--bg); color: var(--text) !important; text-decoration: none !important;
+         padding: 16px 20px; margin-bottom: 12px; border-radius: var(--radius-sm);
+         box-shadow: var(--shadow-out-sm); transition: all 0.25s ease;
+      }
+      .report-link:hover { box-shadow: var(--shadow-in-sm); color: var(--accent) !important; transform: translateY(-1px); }
+      .chart-container { position: relative; margin: 8px auto; }
+      @media (max-width: 575.98px) {
+         body { padding: 12px !important; padding-top: 88px !important; }
+         .navbar { top: 10px !important; width: 96% !important; padding: 8px 12px !important; }
+         .table th, .table td { font-size: 0.75rem !important; padding: 0.45rem 0.5rem !important; }
+      }
+      @media print {
+         .navbar, .theme-toggle, #print-pdf, .copy-table-btn, .suffix-btn { display: none !important; }
+         body { padding-top: 20px !important; background: var(--bg) !important; }
+      }
+   
+      .page-title-row {
+         margin-bottom: 1.25rem !important;
+         padding-bottom: 0.25rem;
+      }
+      .page-title-row h5 {
+         /* THIS */
+         font-weight: 400 !important;
+         /* UNTIL THIS */
+         letter-spacing: -0.02em;
+         font-size: clamp(1.05rem, 2.5vw, 1.25rem) !important;
+         /* THIS */
+         color: var(--text) !important;
+      }
+      .page-title-row h5 strong {
+         font-weight: 700 !important;
+         color: var(--accent, #4a6cf7) !important;
+      }
+      .page-title-row h5 .title-desc {
+         font-weight: 400 !important;
+         color: var(--text-muted, #6c757d) !important;
+         /* UNTIL THIS */
+      }
+      .page-title-row .btn-outline-secondary,
+      .page-title-row a.btn {
+         background: var(--bg) !important;
+         color: var(--text) !important;
+         border: none !important;
+         font-weight: 600 !important;
+         font-size: 0.8rem !important;
+         padding: 8px 16px !important;
+         border-radius: 999px !important;
+         box-shadow: var(--shadow-out-sm) !important;
+         transition: all 0.25s ease !important;
+         text-decoration: none !important;
+      }
+      .page-title-row .btn-outline-secondary:hover,
+      .page-title-row a.btn:hover {
+         box-shadow: var(--shadow-in-sm) !important;
+         color: var(--accent) !important;
+      }
+
+   
+      /* Flatpickr calendar – prevent header month/year crop */
+      .flatpickr-calendar {
+         width: 320px !important;
+         max-width: 95vw !important;
+         padding: 8px !important;
+         box-shadow: var(--shadow-out) !important;
+         background: var(--card-bg, #fff) !important;
+         border: none !important;
+         overflow: visible !important;
+      }
+      .flatpickr-months {
+         display: flex !important;
+         align-items: center !important;
+         justify-content: space-between !important;
+         padding: 4px 4px 8px !important;
+         height: auto !important;
+         min-height: 40px !important;
+         overflow: visible !important;
+      }
+      .flatpickr-months .flatpickr-month {
+         height: auto !important;
+         min-height: 36px !important;
+         overflow: visible !important;
+         flex: 1 1 auto !important;
+      }
+      .flatpickr-current-month {
+         display: flex !important;
+         align-items: center !important;
+         justify-content: center !important;
+         width: 100% !important;
+         left: 0 !important;
+         padding: 0 8px !important;
+         height: auto !important;
+         min-height: 34px !important;
+         font-size: 1rem !important;
+         font-weight: 600 !important;
+         overflow: visible !important;
+         position: relative !important;
+         gap: 6px;
+      }
+      .flatpickr-current-month .flatpickr-monthDropdown-months,
+      .flatpickr-monthDropdown-months {
+         max-width: none !important;
+         width: auto !important;
+         min-width: 110px !important;
+         font-size: 0.95rem !important;
+         font-weight: 600 !important;
+         padding: 4px 8px !important;
+         appearance: auto !important;
+         -webkit-appearance: menulist !important;
+         background: transparent !important;
+         border-radius: 8px !important;
+         overflow: visible !important;
+         text-overflow: clip !important;
+         white-space: nowrap !important;
+      }
+      .flatpickr-current-month input.cur-year,
+      .numInputWrapper {
+         width: auto !important;
+         min-width: 72px !important;
+         max-width: 90px !important;
+         overflow: visible !important;
+      }
+      .flatpickr-current-month input.cur-year {
+         font-size: 0.95rem !important;
+         font-weight: 600 !important;
+         padding: 2px 4px !important;
+         width: 4.2ch !important;
+         max-width: none !important;
+      }
+      .numInputWrapper span {
+         border: none !important;
+      }
+      .flatpickr-prev-month,
+      .flatpickr-next-month {
+         padding: 8px !important;
+         height: 34px !important;
+         width: 34px !important;
+         display: flex !important;
+         align-items: center !important;
+         justify-content: center !important;
+         position: relative !important;
+         top: 0 !important;
+         fill: var(--text, #333) !important;
+      }
+      .flatpickr-prev-month svg,
+      .flatpickr-next-month svg {
+         width: 14px !important;
+         height: 14px !important;
+      }
+      /* monthSelect plugin year header */
+      .flatpickr-monthSelect-months {
+         margin-top: 8px !important;
+      }
+      .flatpickr-monthSelect-month {
+         height: 40px !important;
+         line-height: 40px !important;
+         border-radius: 8px !important;
+      }
+      /* Dark mode flatpickr */
+      [data-theme="dark"] .flatpickr-calendar {
+         background: #1a1d24 !important;
+         color: #e2e8f0 !important;
+         box-shadow: 8px 8px 18px #0d0f14, -8px -8px 18px #2a2f3a !important;
+      }
+      [data-theme="dark"] .flatpickr-months .flatpickr-month,
+      [data-theme="dark"] .flatpickr-current-month,
+      [data-theme="dark"] .flatpickr-current-month input.cur-year,
+      [data-theme="dark"] .flatpickr-monthDropdown-months {
+         color: #e2e8f0 !important;
+         fill: #e2e8f0 !important;
+      }
+      [data-theme="dark"] .flatpickr-prev-month,
+      [data-theme="dark"] .flatpickr-next-month {
+         fill: #e2e8f0 !important;
+         color: #e2e8f0 !important;
+      }
+      [data-theme="dark"] .flatpickr-day {
+         color: #e2e8f0 !important;
+      }
+      [data-theme="dark"] .flatpickr-day.flatpickr-disabled,
+      [data-theme="dark"] .flatpickr-day.prevMonthDay,
+      [data-theme="dark"] .flatpickr-day.nextMonthDay {
+         color: #64748b !important;
+      }
+      [data-theme="dark"] .flatpickr-day.selected,
+      [data-theme="dark"] .flatpickr-day.selected:hover {
+         background: #4a6cf7 !important;
+         border-color: #4a6cf7 !important;
+         color: #fff !important;
+      }
+      [data-theme="dark"] .flatpickr-monthSelect-month {
+         color: #e2e8f0 !important;
+      }
+      [data-theme="dark"] .flatpickr-monthSelect-month.selected {
+         background: #4a6cf7 !important;
+         color: #fff !important;
+      }
+
+   </style>
+<script src="../../assets/mock-socket.js"></script>
+</head>
+<body data-theme="light">
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../../hsb/lpa.html">Remember Me.</a>
+            <button id="theme-toggle" class="theme-toggle" title="Toggle Dark Mode"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg></button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mb-2 mb-lg-0 ms-auto">
+               <li class="nav-item"><a class="nav-link" href="../../index.html">About</a></li>
+               <li class="nav-item"><a class="nav-link" href="../../hsb/tlm.html">TLM</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/lpa.html">LPA</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/ect.html">ECT</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="../../hsb/drs.html">DRS</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/ras.html">RAS</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/isr.html">ISR</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/pd.html">PD</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="container-fluid mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-11">
+                <div class="d-flex justify-content-between align-items-center page-title-row mb-3">
+                    <!-- THIS -->
+                    <h5 class="mb-0"><strong>Revenue Report</strong> <span class="title-desc"> | Gathered from IMTDeals-User</span></h5>
+                    <!-- UNTIL THIS -->
+                    <a href="../../hsb/drs.html" class="btn btn-outline-secondary btn-sm">← Back to DRS</a>
+                </div>
+                <div class="card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 section-header">One Click System</h5>
+                        <button id="export-excel" class="btn btn-light btn-sm" onclick="exportExcel()">Export Excel</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end justify-content-center mb-3">
+                            <div class="col-auto">
+                                <label class="form-label mb-1">Whitelabel</label>
+                                <select id="whitelabel" class="form-select form-select-lg">
+                                    <option value="HSB">HSB (Direct/IB)</option>
+                                    <option value="GLR">GLR (Glory)</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label mb-1">Month</label>
+                                <input type="text" id="date-input" class="form-control form-control-lg" placeholder="Select month" readonly>
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-primary btn-lg px-4" onclick="runReport()">Start</button>
+                                <button class="btn btn-outline-secondary btn-lg px-4" onclick="clearAll()">CLEAR</button>
+                            </div>
+                        </div>
+                        <p class="info-yellow small text-center mb-0">AdditionalInfo: <code>Whitelabel_MM-YYYY</code></p>
+                        <div id="loading" class="text-center py-5 d-none"><div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem"></div><p>Running Revenue Report...</p></div>
+                        <div id="error-box" class="alert alert-danger d-none mt-3" style="white-space:pre-wrap"></div>
+                        <div id="result-container" class="d-none mt-4"><div id="reports-content"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script>
+
+    const socket = io();
+    const REPORT_TYPE = 'RevenueReport';
+    let fp = null;
+    let lastData = null;
+
+    const MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+
+    function fmt(n) {
+        if (n == null || n === '') return '-';
+        const v = Number(n);
+        return isNaN(v) ? String(n) : v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function fmtUsd(n) {
+        if (n == null || n === '') return '-';
+        const v = Number(n);
+        if (isNaN(v)) return String(n);
+        const s = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return (v < 0 ? '-$ ' : '$ ') + s;
+    }
+    function fmtRp(n) {
+        if (n == null || n === '') return '-';
+        const v = Number(n);
+        if (isNaN(v)) return String(n);
+        const s = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return (v < 0 ? '-Rp ' : 'Rp ') + s;
+    }
+    function numClass(n) {
+        const v = Number(n);
+        if (n == null || n === '' || isNaN(v)) return '';
+        return v > 0 ? 'positive' : (v < 0 ? 'negative' : '');
+    }
+    function selectedMonthName() {
+        const dateVal = (document.getElementById('date-input') || {}).value || '';
+        const parts = dateVal.trim().split('-');
+        if (parts.length === 2) {
+            const mm = parseInt(parts[0], 10);
+            if (mm >= 1 && mm <= 12) return MONTH_NAMES[mm];
+        }
+        return dateVal || '';
+    }
+
+    function runReport() {
+        const wl = document.getElementById('whitelabel').value;
+        let dateVal = (document.getElementById('date-input') && document.getElementById('date-input').value.trim()) || '15-09-2025';
+        const additionalInfo = `${wl}_${dateVal}`;
+        document.getElementById('loading').classList.remove('d-none');
+        document.getElementById('result-container').classList.add('d-none');
+        document.getElementById('error-box').classList.add('d-none');
+        lastData = null;
+        socket.emit('run-report', { reportType: REPORT_TYPE, additionalInfo });
+    }
+    function clearAll() {
+        if (fp) fp.clear();
+        document.getElementById('whitelabel').value = 'HSB';
+        document.getElementById('result-container').classList.add('d-none');
+        document.getElementById('loading').classList.add('d-none');
+        document.getElementById('error-box').classList.add('d-none');
+        document.getElementById('reports-content').innerHTML = '';
+        lastData = null;
+    }
+
+    // Metric groups for formatting / yellow highlighting
+    const LOT_KEYS = new Set(['LotIn', 'LotOut', 'TotalLot']);
+    const USD_KEYS = new Set([
+        'PL', 'Swaps', 'Commissions', 'SwapAdjustment', 'TotalClientsPaid',
+        'PLRevenue', 'SwapRevenue', 'SwapAdjustmentRevenue', 'RawRevenue'
+    ]);
+    const YELLOW_LABEL_ONLY = new Set(['PL', 'Swaps', 'Commissions', 'SwapAdjustment', 'TotalClientsPaid']);
+    const YELLOW_LABEL_BOLD = new Set(['TotalLot', 'TotalRevenue']);
+
+    function getRateKeys(table1) {
+        return Object.keys(table1).sort((a, b) => {
+            if (a === 'Float') return 1;
+            if (b === 'Float') return -1;
+            return Number(a) - Number(b);
+        });
+    }
+
+    function render(data) {
+        lastData = data;
+        const table1 = data.Table1 || data.table1 || null;
+        const table2 = data.Table2 || data.table2 || null;
+        const monthName = selectedMonthName();
+
+        const metricOrder = [
+            ['LotIn', 'Lot In'],
+            ['LotOut', 'Lot Out'],
+            ['TotalLot', 'Total Lot'],
+            [null, ''], // blank separator
+            ['PL', 'PL'],
+            ['Swaps', 'Swaps'],
+            ['Commissions', 'Commissions'],
+            ['SwapAdjustment', 'Swap Adjustment'],
+            ['TotalClientsPaid', 'Total clients paid'],
+            [null, ''], // blank separator
+            ['PLRevenue', 'PL Revenue'],
+            ['SwapRevenue', 'Swap Revenue'],
+            ['SwapAdjustmentRevenue', 'Swap Adjustment Revenue'],
+            ['RawRevenue', 'Raw Revenue'],
+            ['RateMultiplier', 'Rate Multiplier'],
+            ['TotalRevenue', 'Total Revenue']
+        ];
+
+        let html = '';
+
+        if (table1 && typeof table1 === 'object') {
+            const rateKeys = getRateKeys(table1);
+            const nRates = rateKeys.length;
+
+            // Header: Deals (rowspan 2) | rates | month row under rates
+            let header1 = `<th rowspan="2" class="align-middle text-center">Deals</th>`;
+            header1 += rateKeys.map(r => `<th class="text-end">${r}</th>`).join('');
+            let header2 = `<th colspan="${nRates}" class="text-center">${monthName}</th>`;
+
+            const bodyRows = metricOrder.map(([key, label]) => {
+                if (key === null) {
+                    return `<tr><td colspan="${nRates + 1}">&nbsp;</td></tr>`;
+                }
+                const yellowCls = YELLOW_LABEL_BOLD.has(key) || YELLOW_LABEL_ONLY.has(key)
+                    ? ' style="background:#FFFF00;font-weight:700"' : '';
+                const boldCls = YELLOW_LABEL_BOLD.has(key) ? ' style="background:#FFFF00;font-weight:700"' : yellowCls;
+
+                const cells = rateKeys.map(rate => {
+                    const row = table1[rate] || {};
+                    const v = row[key];
+                    let display;
+                    if (LOT_KEYS.has(key)) {
+                        display = fmt(v);
+                    } else if (key === 'RateMultiplier') {
+                        display = (rate === 'Float') ? fmtUsd(v) : fmtRp(v);
+                    } else if (key === 'TotalRevenue') {
+                        display = (rate === 'Float') ? fmtUsd(v) : fmtRp(v);
+                    } else if (USD_KEYS.has(key)) {
+                        display = fmtUsd(v);
+                    } else {
+                        display = fmt(v);
+                    }
+                    return `<td class="text-end ${numClass(v)}">${display}</td>`;
+                }).join('');
+
+                return `<tr><td${boldCls}>${label}</td>${cells}</tr>`;
+            }).join('');
+
+            html += `
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white section-header">Revenue Report - Detail by Rate</div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-bordered table-sm table-hover mb-0" id="revenue-detail-table">
+                        <thead>
+                            <tr>${header1}</tr>
+                            <tr>${header2}</tr>
+                        </thead>
+                        <tbody>${bodyRows}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        }
+
+        if (table2 && typeof table2 === 'object') {
+            const summaryRows = [
+                ['TotalRevenueRp', 'Total Revenue (Rp)', 'rp'],
+                ['TotalRevenueUSD', 'Total Revenue (USD)', 'usd'],
+                ['TotalLotAllRate', 'Total Lot All Rate', 'lot']
+            ];
+            const summaryBody = summaryRows.map(([k, label, kind]) => {
+                if (table2[k] === undefined) return '';
+                const v = table2[k];
+                let display = kind === 'rp' ? fmtRp(v) : (kind === 'usd' ? fmtUsd(v) : fmt(v));
+                return `<tr>
+                    <td style="background:#FFFF00;font-weight:700">${label}</td>
+                    <td class="text-end ${numClass(v)}">${display}</td>
+                </tr>`;
+            }).join('');
+
+            html += `
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white section-header">Revenue Report - Summary</div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-bordered table-sm mb-0" id="revenue-summary-table">
+                        <thead>
+                            <tr>
+                                <th>Desc</th>
+                                <th class="text-end">${monthName}</th>
+                            </tr>
+                        </thead>
+                        <tbody>${summaryBody}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        }
+
+        if (!html) {
+            html = `<div class="card mb-4"><div class="card-header bg-info text-white">Revenue Report</div>
+                <div class="card-body"><pre style="white-space:pre-wrap;font-size:12px">${JSON.stringify(data, null, 2)}</pre></div></div>`;
+        }
+
+        document.getElementById('reports-content').innerHTML = html;
+        document.getElementById('result-container').classList.remove('d-none');
+    }
+
+    function exportExcel() {
+        if (!lastData) return alert('No data to export');
+
+        const table1 = lastData.Table1 || lastData.table1 || null;
+        const table2 = lastData.Table2 || lastData.table2 || null;
+        if (!table1 && !table2) return alert('No data to export');
+
+        const wl = (document.getElementById('whitelabel') || {}).value || 'HSB';
+        const period = ((document.getElementById('date-input') || {}).value || '').trim() || 'nodate';
+        const fileName = REPORT_TYPE + '_' + wl + '-' + period + '.xlsx';
+        const monthName = selectedMonthName();
+
+        const rateKeys = table1 ? getRateKeys(table1) : [];
+        const nRates = rateKeys.length;
+        const lastCol = nRates; // col 0 = label, 1..nRates = rates
+
+        // Build AOA
+        // Row 0: Deals | rate1 | rate2 | ...
+        // Row 1: (merged A) | month (merged across rates)
+        const header1 = ['Deals', ...rateKeys];
+        const header2 = ['', monthName, ...Array(Math.max(0, nRates - 1)).fill('')];
+
+        const metricOrder = [
+            ['LotIn', 'Lot In'],
+            ['LotOut', 'Lot Out'],
+            ['TotalLot', 'Total Lot'],
+            [null, ''],
+            ['PL', 'PL'],
+            ['Swaps', 'Swaps'],
+            ['Commissions', 'Commissions'],
+            ['SwapAdjustment', 'Swap Adjustment'],
+            ['TotalClientsPaid', 'Total clients paid'],
+            [null, ''],
+            ['PLRevenue', 'PL Revenue'],
+            ['SwapRevenue', 'Swap Revenue'],
+            ['SwapAdjustmentRevenue', 'Swap Adjustment Revenue'],
+            ['RawRevenue', 'Raw Revenue'],
+            ['RateMultiplier', 'Rate Multiplier'],
+            ['TotalRevenue', 'Total Revenue']
+        ];
+
+        const dataRows = [];
+        const rowMeta = []; // track metric key per data row for styling
+
+        if (table1) {
+            metricOrder.forEach(([key, label]) => {
+                if (key === null) {
+                    dataRows.push(Array(nRates + 1).fill(null));
+                    rowMeta.push(null);
+                    return;
+                }
+                const row = [label];
+                rateKeys.forEach(rate => {
+                    const r = table1[rate] || {};
+                    let v = r[key];
+                    if (v == null || v === '') { row.push(null); return; }
+                    const n = Number(v);
+                    row.push(isNaN(n) ? v : n);
+                });
+                dataRows.push(row);
+                rowMeta.push(key);
+            });
+        }
+
+        // Blank separator then summary section
+        dataRows.push(Array(nRates + 1).fill(null));
+        rowMeta.push(null);
+
+        const summaryStart = dataRows.length;
+        dataRows.push(['Desc', monthName, ...Array(Math.max(0, nRates - 1)).fill(null)]);
+        rowMeta.push('__summary_header__');
+
+        if (table2) {
+            const summaryDefs = [
+                ['TotalRevenueRp', 'Total Revenue (Rp)', 'rp'],
+                ['TotalRevenueUSD', 'Total Revenue (USD)', 'usd'],
+                ['TotalLotAllRate', 'Total Lot All Rate', 'lot']
+            ];
+            summaryDefs.forEach(([k, label, kind]) => {
+                if (table2[k] === undefined) return;
+                const v = table2[k];
+                const n = Number(v);
+                const row = [label, isNaN(n) ? v : n, ...Array(Math.max(0, nRates - 1)).fill(null)];
+                dataRows.push(row);
+                rowMeta.push('__summary_' + kind);
+            });
+        }
+
+        const aoa = [header1, header2, ...dataRows];
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+        // Merges
+        const merges = [
+            { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } } // A1:A2 Deals
+        ];
+        if (nRates > 0) {
+            merges.push({ s: { r: 1, c: 1 }, e: { r: 1, c: lastCol } }); // month across rates
+        }
+        ws['!merges'] = merges;
+
+        // Styles
+        const XL_BORDER = {
+            top:    { style: 'thin', color: { rgb: '000000' } },
+            bottom: { style: 'thin', color: { rgb: '000000' } },
+            left:   { style: 'thin', color: { rgb: '000000' } },
+            right:  { style: 'thin', color: { rgb: '000000' } }
+        };
+        const XL_CENTER = { horizontal: 'center', vertical: 'center', wrapText: true };
+        const XL_HEADER = {
+            font: { bold: true },
+            border: XL_BORDER,
+            alignment: XL_CENTER
+        };
+        const XL_YELLOW_BOLD = {
+            font: { bold: true },
+            fill: { fgColor: { rgb: 'FFFF00' } },
+            border: XL_BORDER,
+            alignment: { vertical: 'center' }
+        };
+        const XL_YELLOW_LABEL = {
+            font: { bold: true },
+            fill: { fgColor: { rgb: 'FFFF00' } },
+            border: XL_BORDER,
+            alignment: { vertical: 'center' }
+        };
+        const XL_CELL = {
+            border: XL_BORDER,
+            alignment: { vertical: 'center' }
+        };
+        const XL_NUM = {
+            border: XL_BORDER,
+            alignment: { horizontal: 'right', vertical: 'center' },
+            numFmt: '#,##0.00'
+        };
+        const XL_USD = {
+            border: XL_BORDER,
+            alignment: { horizontal: 'right', vertical: 'center' },
+            numFmt: '"$ "#,##0.00;"$ "-#,##0.00'
+        };
+        const XL_RP = {
+            border: XL_BORDER,
+            alignment: { horizontal: 'right', vertical: 'center' },
+            numFmt: '"Rp "#,##0.00;"Rp "-#,##0.00'
+        };
+
+        const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+        const colWidths = [];
+
+        for (let R = range.s.r; R <= range.e.r; R++) {
+            for (let C = range.s.c; C <= range.e.c; C++) {
+                const addr = XLSX.utils.encode_cell({ r: R, c: C });
+                let cell = ws[addr];
+                if (!cell) {
+                    // Create empty cells only for header / merge areas
+                    if (R <= 1) {
+                        cell = { t: 's', v: '' };
+                        ws[addr] = cell;
+                    } else {
+                        continue;
+                    }
+                }
+                const v = cell.v;
+                const hasVal = !(v === null || v === undefined || v === '');
+
+                // Header rows 0-1
+                if (R <= 1) {
+                    cell.s = XL_HEADER;
+                    if (hasVal) {
+                        const len = String(v).length + 2;
+                        if (!colWidths[C] || len > colWidths[C]) colWidths[C] = len;
+                    }
+                    continue;
+                }
+
+                const metaIdx = R - 2; // dataRows index
+                const key = rowMeta[metaIdx];
+
+                // Blank separator rows
+                if (key === null) continue;
+
+                // Summary header
+                if (key === '__summary_header__') {
+                    if (hasVal) {
+                        cell.s = XL_HEADER;
+                        const len = String(v).length + 2;
+                        if (!colWidths[C] || len > colWidths[C]) colWidths[C] = len;
+                    }
+                    continue;
+                }
+
+                // Summary data rows
+                if (typeof key === 'string' && key.startsWith('__summary_')) {
+                    const kind = key.replace('__summary_', '');
+                    if (C === 0) {
+                        cell.s = XL_YELLOW_BOLD;
+                    } else if (hasVal && typeof v === 'number') {
+                        if (kind === 'rp') cell.s = XL_RP;
+                        else if (kind === 'usd') cell.s = XL_USD;
+                        else cell.s = XL_NUM;
+                    } else if (hasVal) {
+                        cell.s = XL_CELL;
+                    }
+                    if (hasVal) {
+                        const len = String(v).length + 4;
+                        if (!colWidths[C] || len > colWidths[C]) colWidths[C] = len;
+                    }
+                    continue;
+                }
+
+                // Detail metric rows
+                if (C === 0) {
+                    // Label column
+                    if (YELLOW_LABEL_BOLD.has(key) || YELLOW_LABEL_ONLY.has(key)) {
+                        cell.s = XL_YELLOW_LABEL;
+                    } else {
+                        cell.s = XL_CELL;
+                    }
+                    if (hasVal) {
+                        const len = String(v).length + 2;
+                        if (!colWidths[C] || len > colWidths[C]) colWidths[C] = len;
+                    }
+                    continue;
+                }
+
+                // Value columns
+                if (!hasVal) continue;
+
+                if (typeof v === 'number') {
+                    const rate = rateKeys[C - 1];
+                    if (LOT_KEYS.has(key)) {
+                        cell.s = XL_NUM;
+                    } else if (key === 'RateMultiplier' || key === 'TotalRevenue') {
+                        cell.s = (rate === 'Float') ? XL_USD : XL_RP;
+                    } else if (USD_KEYS.has(key)) {
+                        cell.s = XL_USD;
+                    } else {
+                        cell.s = XL_NUM;
+                    }
+                } else {
+                    cell.s = XL_CELL;
+                }
+
+                const len = String(v).length + 4;
+                if (!colWidths[C] || len > colWidths[C]) colWidths[C] = len;
+            }
+        }
+
+        // Autofit
+        ws['!cols'] = [];
+        for (let C = range.s.c; C <= range.e.c; C++) {
+            const w = colWidths[C];
+            ws['!cols'][C] = { wch: w ? Math.max(8, w) : 12 };
+        }
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Revenue Report');
+        XLSX.writeFile(wb, fileName);
+    }
+
+    socket.on('report-result', p => { if(p.reportType!==REPORT_TYPE) return; document.getElementById('loading').classList.add('d-none'); render(p.data||{}); });
+    socket.on('report-error', p => {
+        if(p.reportType && p.reportType!==REPORT_TYPE) return;
+        document.getElementById('loading').classList.add('d-none');
+        const box=document.getElementById('error-box');
+        box.textContent = p.message || 'Error';
+        if(p.rawOutput) box.textContent += '\n'+p.rawOutput.substring(0,800);
+        box.classList.remove('d-none');
+    });
+
+
+    function setTheme(t){ document.documentElement.setAttribute('data-theme',t); document.body.setAttribute('data-theme',t); localStorage.setItem('theme',t);
+        document.getElementById('theme-toggle').innerHTML = t==='dark'
+            ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`
+            : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setTheme(localStorage.getItem('theme')||'light');
+        document.getElementById('theme-toggle').onclick = () => setTheme((document.documentElement.getAttribute('data-theme')||'light')==='dark'?'light':'dark');
+        
+        const toggler = document.querySelector('.navbar-toggler');
+        if (toggler) toggler.addEventListener('click', () => toggler.classList.toggle('rotated'));
+// Month-only calendar picker
+        fp = flatpickr('#date-input', {
+            plugins: [
+                new monthSelectPlugin({
+                    shorthand: true,
+                    dateFormat: 'm-Y',
+                    altFormat: 'F Y'
+                })
+            ],
+            allowInput: false
+        });
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PrinceJF - RAS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' fill='white'/%3E%3Cellipse cx='50' cy='50' rx='35' ry='10' fill='none' stroke='white' stroke-width='4'/%3E%3C/svg%3E">
+       
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    
+   <style>
+      :root {
+         --bg: #e0e5ec; --bg-soft: #e8edf3; --text: #2d3748; --text-muted: #718096;
+         --accent: #4a6cf7; --accent-soft: rgba(74, 108, 247, 0.12);
+         --success: #10b981; --warning: #f59e0b; --info: #0ea5e9; --danger: #ef4444;
+         --shadow-out: 8px 8px 16px #a3b1c6, -8px -8px 16px #ffffff;
+         --shadow-out-sm: 4px 4px 10px #a3b1c6, -4px -4px 10px #ffffff;
+         --shadow-in: inset 5px 5px 10px #a3b1c6, inset -5px -5px 10px #ffffff;
+         --shadow-in-sm: inset 3px 3px 6px #a3b1c6, inset -3px -3px 6px #ffffff;
+         --radius: 18px; --radius-sm: 12px; --radius-pill: 999px;
+         --card-bg: #e0e5ec; --table-header: #d4dbe6; --border-soft: rgba(163, 177, 198, 0.35);
+         --navbar-bg: #e0e5ec;
+      }
+      [data-theme="dark"] {
+         --bg: #1a1d24; --bg-soft: #22262f; --text: #e2e8f0; --text-muted: #94a3b8;
+         --accent: #7c9cff; --accent-soft: rgba(124, 156, 255, 0.15);
+         --success: #34d399; --warning: #fbbf24; --info: #38bdf8; --danger: #f87171;
+         --shadow-out: 8px 8px 18px #0d0f14, -8px -8px 18px #2a2f3a;
+         --shadow-out-sm: 4px 4px 12px #0d0f14, -4px -4px 12px #2a2f3a;
+         --shadow-in: inset 5px 5px 12px #0d0f14, inset -5px -5px 12px #2a2f3a;
+         --shadow-in-sm: inset 3px 3px 7px #0d0f14, inset -3px -3px 7px #2a2f3a;
+         --card-bg: #1a1d24; --table-header: #252a34; --border-soft: rgba(148, 163, 184, 0.12);
+         --navbar-bg: #1a1d24;
+      }
+      *, *::before, *::after { box-sizing: border-box; }
+      body {
+         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+         background: var(--bg) !important; color: var(--text) !important;
+         padding: 16px !important; padding-top: 96px !important;
+         min-height: 100dvh; transition: background 0.45s ease, color 0.45s ease;
+         -webkit-font-smoothing: antialiased; letter-spacing: -0.01em;
+      }
+      .navbar {
+         position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+         width: min(94%, 1180px); background: var(--navbar-bg) !important;
+         box-shadow: var(--shadow-out); border: none !important; border-radius: var(--radius);
+         padding: 10px 16px; z-index: 1030; transition: box-shadow 0.4s ease, background 0.4s ease;
+      }
+      .navbar-brand { font-weight: 700; color: var(--accent) !important; font-size: 1.25rem; letter-spacing: -0.02em; padding: 6px 12px; border-radius: var(--radius-sm); }
+      .navbar-nav .nav-link { color: var(--text) !important; font-size: 0.9rem; font-weight: 500; padding: 8px 14px !important; margin: 2px 3px; border-radius: var(--radius-sm); transition: all 0.25s ease; }
+      .navbar-nav .nav-link:hover { color: var(--accent) !important; background: var(--accent-soft); box-shadow: var(--shadow-in-sm); }
+      .navbar-nav .nav-link.active { color: var(--accent) !important; font-weight: 600; background: var(--accent-soft); box-shadow: var(--shadow-in-sm); }
+      .theme-toggle {
+         width: 42px; height: 42px; border: none; background: var(--bg); color: var(--accent);
+         border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+         box-shadow: var(--shadow-out-sm); transition: all 0.3s ease; margin-left: auto; margin-right: 10px; flex-shrink: 0;
+      }
+      .theme-toggle:hover { box-shadow: var(--shadow-in-sm); transform: scale(1.05); }
+      .theme-toggle:active { box-shadow: var(--shadow-in); }
+      .theme-toggle svg { width: 20px; height: 20px; }
+      .navbar-toggler { border: none !important; padding: 8px; border-radius: 50%; box-shadow: var(--shadow-out-sm); background: var(--bg); transition: all 0.35s ease; }
+      .navbar-toggler:focus { box-shadow: var(--shadow-in-sm); }
+      .navbar-toggler.rotated { transform: rotate(90deg); }
+      .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(74,108,247,0.85)' stroke-width='2.2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); }
+      [data-theme="dark"] .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(124,156,255,0.9)' stroke-width='2.2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); }
+      @media (max-width: 991.98px) {
+         .navbar-collapse { background: var(--bg); border-radius: var(--radius-sm); margin-top: 12px; padding: 10px; box-shadow: var(--shadow-in-sm); }
+         .navbar-nav { margin-left: 0 !important; }
+         .navbar-nav .nav-link { padding: 12px 16px !important; }
+      }
+      h1, h2, h3, .page-title, .text-primary { font-weight: 700 !important; letter-spacing: -0.03em; color: var(--text) !important; }
+      h2.text-center, h2.mb-2, h2.mb-3 { font-size: clamp(1.35rem, 4vw, 1.85rem) !important; }
+      .badge.bg-secondary, #current-datetime {
+         display: inline-block !important; background: var(--bg) !important; color: var(--text-muted) !important;
+         font-size: 0.85rem !important; font-weight: 500 !important; padding: 8px 18px !important;
+         border-radius: 999px !important; box-shadow: var(--shadow-in-sm) !important; border: none !important;
+      }
+      .btn-outline-primary, #print-pdf, .btn.btn-outline-primary {
+         background: var(--bg) !important; color: var(--accent) !important; border: none !important;
+         font-weight: 600 !important; font-size: 0.875rem !important; padding: 10px 22px !important;
+         border-radius: 999px !important; box-shadow: var(--shadow-out-sm) !important; transition: all 0.25s ease !important;
+      }
+      .btn-outline-primary:hover, #print-pdf:hover { box-shadow: var(--shadow-in-sm) !important; color: var(--accent) !important; background: var(--bg) !important; }
+      .btn-sm, .copy-table-btn, .btn-light {
+         font-size: 0.75rem !important; padding: 5px 12px !important; border-radius: var(--radius-sm) !important;
+         font-weight: 600 !important; background: var(--bg) !important; color: var(--text) !important;
+         border: none !important; box-shadow: var(--shadow-out-sm) !important;
+      }
+      .btn-sm:hover, .copy-table-btn:hover { box-shadow: var(--shadow-in-sm) !important; color: var(--accent) !important; }
+      .card, .neo-card {
+         background: var(--card-bg) !important; border: none !important; border-radius: var(--radius) !important;
+         box-shadow: var(--shadow-out) !important; overflow: hidden; color: var(--text) !important;
+      }
+      .card-header, .neo-card-header {
+         background: transparent !important; color: var(--text) !important; font-weight: 600 !important;
+         font-size: 0.95rem !important; padding: 14px 18px !important; border-bottom: none !important;
+      }
+      .card-header.bg-primary, .card-header.bg-success, .card-header.bg-info, .card-header.bg-warning,
+      .card-header.bg-danger, .card-header.bg-dark, .card-header.bg-secondary {
+         background: transparent !important; color: var(--text) !important;
+      }
+      .card-header.text-white, .card-header.text-dark { color: var(--text) !important; }
+      .card-body { padding: 12px 16px 18px !important; }
+      .table {
+         background: transparent !important; color: var(--text) !important; margin-bottom: 0;
+         --bs-table-bg: transparent; --bs-table-color: var(--text);
+         --bs-table-border-color: var(--border-soft); --bs-table-hover-bg: var(--accent-soft);
+      }
+      .table th, .table td {
+         vertical-align: middle; font-size: 0.8rem !important; color: var(--text) !important;
+         border-color: var(--border-soft) !important; padding: 0.55rem 0.65rem !important;
+         background: transparent !important;
+      }
+      .table thead th {
+         background: var(--table-header) !important; font-weight: 600 !important; font-size: 0.72rem !important;
+         text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted) !important; border: none !important;
+      }
+      .table-responsive {
+         border-radius: var(--radius-sm) !important; box-shadow: var(--shadow-in-sm) !important;
+         padding: 4px; background: var(--bg) !important;
+      }
+      .positive { color: var(--success) !important; font-weight: 600 !important; }
+      .negative { color: var(--danger) !important; font-weight: 600 !important; }
+      .grand-total-row { background: var(--accent-soft) !important; font-weight: 700 !important; }
+      .suffix-btn, .filter-btn, .btn-group .btn {
+         background: var(--bg) !important; color: var(--text) !important; border: none !important;
+         font-weight: 600 !important; font-size: 0.85rem !important; padding: 10px 18px !important;
+         border-radius: 999px !important; box-shadow: var(--shadow-out-sm) !important; transition: all 0.25s ease !important;
+      }
+      .suffix-btn:hover, .filter-btn:hover, .btn-group .btn:hover { box-shadow: var(--shadow-in-sm) !important; color: var(--accent) !important; }
+      .suffix-btn.active, .filter-btn.active, .btn-group .btn.active {
+         box-shadow: var(--shadow-in) !important; color: var(--accent) !important; background: var(--bg) !important;
+      }
+      
+      .form-control, .form-select, input, select, textarea {
+         background: var(--bg) !important;
+         color: var(--text) !important;
+         border: none !important;
+         border-radius: var(--radius-sm) !important;
+         box-shadow: var(--shadow-in-sm) !important;
+         padding: 10px 14px !important;
+         -webkit-text-fill-color: var(--text) !important;
+         caret-color: var(--text) !important;
+      }
+      .form-control:focus, .form-select:focus { box-shadow: var(--shadow-in) !important; outline: none !important; }
+
+      /* Light mode placeholders */
+      .form-control::placeholder,
+      input.form-control::placeholder,
+      input::placeholder,
+      textarea::placeholder {
+         color: #6c757d !important;
+         opacity: 1 !important;
+         -webkit-text-fill-color: #6c757d !important;
+      }
+      .form-control::-webkit-input-placeholder,
+      input::-webkit-input-placeholder {
+         color: #6c757d !important;
+         -webkit-text-fill-color: #6c757d !important;
+      }
+      .form-control::-moz-placeholder,
+      input::-moz-placeholder {
+         color: #6c757d !important;
+         opacity: 1 !important;
+      }
+
+      /* Dark mode â force white placeholders */
+      html[data-theme="dark"] .form-control::placeholder,
+      html[data-theme="dark"] input.form-control::placeholder,
+      html[data-theme="dark"] input::placeholder,
+      html[data-theme="dark"] textarea::placeholder,
+      body[data-theme="dark"] .form-control::placeholder,
+      body[data-theme="dark"] input.form-control::placeholder,
+      body[data-theme="dark"] input::placeholder,
+      body[data-theme="dark"] textarea::placeholder {
+         color: #ffffff !important;
+         opacity: 1 !important;
+         -webkit-text-fill-color: #ffffff !important;
+      }
+      html[data-theme="dark"] .form-control::-webkit-input-placeholder,
+      html[data-theme="dark"] input::-webkit-input-placeholder,
+      body[data-theme="dark"] .form-control::-webkit-input-placeholder,
+      body[data-theme="dark"] input::-webkit-input-placeholder {
+         color: #ffffff !important;
+         -webkit-text-fill-color: #ffffff !important;
+      }
+      html[data-theme="dark"] .form-control::-moz-placeholder,
+      html[data-theme="dark"] input::-moz-placeholder,
+      body[data-theme="dark"] .form-control::-moz-placeholder,
+      body[data-theme="dark"] input::-moz-placeholder {
+         color: #ffffff !important;
+         opacity: 1 !important;
+      }
+
+      html[data-theme="dark"], body[data-theme="dark"] {
+         --bs-body-color: #e2e8f0;
+         --bs-body-bg: #1a1d24;
+         --bs-secondary-color: rgba(255, 255, 255, 0.85);
+         --bs-tertiary-color: rgba(255, 255, 255, 0.65);
+         color-scheme: dark;
+      }
+
+      .form-select {
+         color: var(--text) !important;
+      }
+      .form-select option {
+         background: var(--bg);
+         color: var(--text);
+      }
+
+
+.report-link, a.report-link {
+         display: block; background: var(--bg); color: var(--text) !important; text-decoration: none !important;
+         padding: 16px 20px; margin-bottom: 12px; border-radius: var(--radius-sm);
+         box-shadow: var(--shadow-out-sm); transition: all 0.25s ease;
+      }
+      .report-link:hover { box-shadow: var(--shadow-in-sm); color: var(--accent) !important; transform: translateY(-1px); }
+      .chart-container { position: relative; margin: 8px auto; }
+      @media (max-width: 575.98px) {
+         body { padding: 12px !important; padding-top: 88px !important; }
+         .navbar { top: 10px !important; width: 96% !important; padding: 8px 12px !important; }
+         .table th, .table td { font-size: 0.75rem !important; padding: 0.45rem 0.5rem !important; }
+      }
+      @media print {
+         .navbar, .theme-toggle, #print-pdf, .copy-table-btn, .suffix-btn, .navbar-toggler { display: none !important; }
+         body, html {
+            background: var(--bg) !important;
+            color: var(--text) !important;
+            padding-top: 20px !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+         }
+         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      }
+   
+      .page-title-row {
+         margin-bottom: 1.75rem !important;
+         padding-bottom: 0.5rem;
+      }
+   </style>
+<script src="../assets/mock-socket.js"></script>
+</head>
+<body data-theme="light">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../hsb/lpa.html">Remember Me.</a>
+            
+            <button id="theme-toggle" class="theme-toggle" title="Toggle Dark Mode">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            </button>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mb-2 mb-lg-0 ms-auto">
+               <li class="nav-item"><a class="nav-link" href="../index.html">About</a></li>
+               <li class="nav-item"><a class="nav-link" href="../hsb/tlm.html">TLM</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../hsb/lpa.html">LPA</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../hsb/ect.html">ECT</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../hsb/drs.html">DRS</a></li>
+                    <!-- <li class="nav-item"><a class="nav-link" href="../hsb/price-monitor.html">DPM</a></li> -->
+                    <li class="nav-item"><a class="nav-link active" href="../hsb/ras.html">RAS</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../hsb/isr.html">ISR</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../hsb/pd.html">PD</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <h2 class="mb-3 text-center text-primary page-title-row">Risk Analyst System</h2>
+        <div class="row justify-content-center">
+            <div class="col-lg-11">
+                <div class="card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 section-header">One User Flow</h5>
+                        <button id="print-pdf" class="btn btn-light btn-sm">Export PDF</button>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="input-section" style="margin-bottom: 2rem;">
+                            <div class="input-group">
+                                <input type="hidden" id="login-input" value="10001" />
+                                <button class="btn btn-primary btn-lg px-4" onclick="runRAS()">Start</button>
+                                <button class="btn btn-outline-secondary btn-lg px-4" onclick="clearAll()">Clear</button>
+                            </div>
+                        </div>
+
+                        <div id="loading" class="text-center py-5 d-none">
+                            <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem"></div>
+                            <p>Running RAS for login <strong id="current-login"></strong>...</p>
+                        </div>
+
+                        <div id="result-container" class="d-none">
+                            <div id="reports-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    const socket = io();
+    let patternPieChart = null;
+    let patternBarChart = null;
+    let profitTrendChart = null;
+    let symbolPieChart = null;
+    let holdingStackedChart = null;
+
+    function runRAS() {
+        const login = document.getElementById('login-input').value || '10001';
+        document.getElementById('loading').classList.remove('d-none');
+        document.getElementById('result-container').classList.add('d-none');
+        document.getElementById('current-login').textContent = login;
+
+        socket.emit('run-ras', { login: parseInt(login) });
+    }
+
+    function clearAll() {
+        document.getElementById('login-input').value = '';
+        document.getElementById('result-container').classList.add('d-none');
+        document.getElementById('loading').classList.add('d-none');
+    }
+
+    function renderRASReport(data) {
+        let html = `
+            <h4 class="mb-4 mt-3 text-center">
+                RAS Report - ${data.client_overview?.login || data.login || 'N/A'}<br>
+                Group: ${data.client_overview?.raw_group || data.raw_group || 'N/A'}
+            </h4>
+        `;
+
+        const co = data.client_overview || data;
+        let statusClass = 'status-normal';
+        let clientTypeClass = 'clienttype-normal';
+
+        const status = co.status || 'Normal';
+        const clientType = co.ClientType || 'Normal';
+
+        if (status.includes('100% Abusive')) statusClass = 'status-100-abusive';
+        else if (status.includes('Abusive')) statusClass = 'status-abusive';
+
+        if (clientType !== 'Normal' && clientType !== '-') clientTypeClass = 'clienttype-abusive';
+
+        html += `
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white section-header">Client Overview</div>
+            <div class="card-body table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Registered</th>
+                            <th>Initial Transaction</th>
+                            <th>Latest Transaction</th>
+                            <th>Status</th>
+                            <th>ClientType</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${co.registered || '-'}</td>
+                            <td>${co.initial_transaction || '-'}</td>
+                            <td>${co.latest_transaction || '-'}</td>
+                            <td class="${statusClass}"><strong>${status}</strong></td>
+                            <td class="${clientTypeClass}"><strong>${clientType}</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>`;
+
+        const po = data.pattern_overview || {};
+        const patterns = po.patterns || [];
+        const patternMap = {};
+        patterns.forEach(p => {
+            if (!patternMap[p.pattern]) patternMap[p.pattern] = { qty: 0, profit: 0 };
+            (p.symbols || []).forEach(sym => {
+                patternMap[p.pattern].qty += sym.quantity || 0;
+                patternMap[p.pattern].profit += sym.profit || 0;
+            });
+        });
+
+        const patternLabels = Object.keys(patternMap);
+        const qtyData = patternLabels.map(p => patternMap[p].qty);
+        const profitData = patternLabels.map(p => patternMap[p].profit);
+
+        html += `
+        <div class="card mb-4">
+            <div class="card-header bg-black text-white section-header">Pattern Analysis</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h6 class="text-center mb-3">Pattern Distribution (by Quantity)</h6>
+                        <div class="chart-container" style="height: 500px;"><canvas id="patternPieChart"></canvas></div>
+                    </div>
+                    <div class="col-lg-6">
+                        <h6 class="text-center mb-3">Profit by Pattern</h6>
+                        <div class="chart-container" style="height: 500px;"><canvas id="patternBarChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+        const lv = data.lifetime_value || {};
+        html += `
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark section-header">Lifetime Value Analysis</div>
+            <div class="card-body">
+                <p><strong>Total Positions:</strong> ${lv.total_positions || 0} | 
+                   <strong>Total Volume($):</strong> ${Number(lv.grand_total_volume || 0).toFixed(2)} | 
+                   <strong>Total Profit:</strong> <span class="${(Number((lv.grand_total_profit||0))>0?'positive':(Number((lv.grand_total_profit||0))<0?'negative':''))}">${Number(lv.grand_total_profit || 0).toFixed(2)}</span></p>
+                
+                <table class="table table-bordered">
+                    <thead><tr><th>Symbol</th><th>Volume($)</th><th>Market Share %</th><th>Profit</th><th>Win Rate %</th></tr></thead>
+                    <tbody>
+                        ${(lv.symbols || []).map(s => `
+                            <tr>
+                                <td><strong>${s.symbol}</strong></td>
+                                <td>${Number(s.volume_usd||0).toFixed(2)}</td>
+                                <td>${Number(s.market_share_pct||0).toFixed(2)}</td>
+                                <td class="${(Number((s.profit||0))>0?'positive':(Number((s.profit||0))<0?'negative':''))}">${Number(s.profit||0).toFixed(2)}</td>
+                                <td>${Number(s.win_rate_pct||0).toFixed(2)}</td>
+                            </tr>
+                        `).join('') || '<tr><td colspan="5" class="text-center text-muted">No data</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        </div>`;
+
+        html += `
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white section-header">Lifetime Profit Trend</div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 500px;"><canvas id="profitTrendChart"></canvas></div>
+            </div>
+        </div>`;
+
+        html += `
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white section-header">Symbol Distribution & Holding Analysis</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h6 class="text-center mb-3">Symbol Distribution (by Count)</h6>
+                        <div class="chart-container" style="height: 500px;"><canvas id="symbolPieChart"></canvas></div>
+                    </div>
+                    <div class="col-lg-6">
+                        <h6 class="text-center mb-3">Volume & Count by Holding Period</h6>
+                        <div class="chart-container" style="height: 500px;"><canvas id="holdingStackedChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+        const at = data.abusive_trades || {};
+        let abusiveRows = '';
+        if (at.trades && at.trades.length) {
+            abusiveRows = at.trades.map(t => `
+                <tr>
+                    <td>${t.position_id}</td>
+                    <td>${t.close_deal}</td>
+                    <td>${t.symbol}</td>
+                    <td>${t.close_time}</td>
+                    <td>${t.last_open_time}</td>
+                    <td>${t.volume}</td>
+                    <td>${Number(t.volume_usd||0).toFixed(2)}</td>
+                    <td class="${(Number((t.profit||0))>0?'positive':(Number((t.profit||0))<0?'negative':''))}">${Number(t.profit||0).toFixed(2)}</td>
+                    <td>${t.holding_period}</td>
+                    <td>${t.pattern}</td>
+                </tr>
+            `).join('');
+        }
+
+        html += `
+        <div class="card mb-4">
+            <div class="card-header bg-danger text-white section-header">Detailed Abusive Trades (HFT + Scalping) - ${at.total_abusive_trades || 0}</div>
+            <div class="card-body table-responsive">
+                <table class="table table-bordered table-hover table-sm">
+                    <thead><tr>
+                        <th>PositionID</th><th>Deal</th><th>Symbol</th><th>Close Time</th>
+                        <th>Open Time</th><th>Volume</th><th>Volume($)</th><th>Profit</th>
+                        <th>Holding</th><th>Pattern</th>
+                    </tr></thead>
+                    <tbody>${abusiveRows || '<tr><td colspan="10" class="text-center text-muted">No abusive trades</td></tr>'}</tbody>
+                </table>
+            </div>
+        </div>`;
+
+        document.getElementById('reports-content').innerHTML = html;
+        document.getElementById('result-container').classList.remove('d-none');
+
+        const rd = data.raw_deals || {};
+
+        setTimeout(() => {
+            if (patternPieChart) patternPieChart.destroy();
+            if (patternBarChart) patternBarChart.destroy();
+            if (profitTrendChart) profitTrendChart.destroy();
+            if (symbolPieChart) symbolPieChart.destroy();
+            if (holdingStackedChart) holdingStackedChart.destroy();
+
+            patternPieChart = new Chart(document.getElementById('patternPieChart'), {
+                type: 'pie',
+                data: {
+                    labels: patternLabels,
+                    datasets: [{ data: qtyData, backgroundColor: ['#0d6efd', '#fd7e14', '#198754', '#dc3545', '#6f42c1', '#ffc107'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            patternBarChart = new Chart(document.getElementById('patternBarChart'), {
+                type: 'bar',
+                data: {
+                    labels: patternLabels,
+                    datasets: [{
+                        label: 'Profit',
+                        data: profitData,
+                        backgroundColor: profitData.map(v => v >= 0 ? '#198754' : '#dc3545')
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+
+            renderProfitTrendChart(rd.positions || []);
+            renderSymbolPieChart(rd.positions || []);
+            renderHoldingStackedChart(rd.positions || []);
+        }, 200);
+    }
+
+    function renderProfitTrendChart(positions) {
+        if (!positions || positions.length === 0) return;
+        const sortedPositions = [...positions].sort((a, b) => new Date(a.close_time || a.closeTime || 0) - new Date(b.close_time || b.closeTime || 0));
+        const symbolData = {};
+        const allDates = new Set();
+
+        sortedPositions.forEach(p => {
+            const symbol = p.symbol || 'Unknown';
+            const closeTimeStr = p.close_time || p.closeTime || '';
+            const profit = parseFloat(p.profit) || 0;
+            if (!symbolData[symbol]) symbolData[symbol] = { dates: [], profits: [] };
+            symbolData[symbol].dates.push(closeTimeStr);
+            symbolData[symbol].profits.push(profit);
+            allDates.add(closeTimeStr);
+        });
+
+        const dateLabels = Array.from(allDates);
+        const datasets = Object.keys(symbolData).map((symbol, index) => {
+            const dataMap = {};
+            symbolData[symbol].dates.forEach((date, i) => dataMap[date] = symbolData[symbol].profits[i]);
+            const dataPoints = dateLabels.map(date => dataMap[date] !== undefined ? dataMap[date] : null);
+            const colors = ['#0d6efd', '#dc3545', '#198754', '#fd7e14', '#6f42c1', '#ffc107', '#20c997'];
+            return {
+                label: symbol,
+                data: dataPoints,
+                borderColor: colors[index % colors.length],
+                backgroundColor: colors[index % colors.length] + '33',
+                borderWidth: 2,
+                tension: 0.2,
+                spanGaps: true
+            };
+        });
+
+        profitTrendChart = new Chart(document.getElementById('profitTrendChart'), {
+            type: 'line',
+            data: { labels: dateLabels, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                scales: {
+                    x: { title: { display: true, text: 'Close Time' }, ticks: { maxTicksLimit: 15 } },
+                    y: { title: { display: true, text: 'Profit' } }
+                },
+                plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 15 } } }
+            }
+        });
+    }
+
+    function renderSymbolPieChart(positions) {
+        if (!positions || positions.length === 0) return;
+        const symbolCount = {};
+        positions.forEach(p => {
+            const symbol = p.symbol || 'Unknown';
+            symbolCount[symbol] = (symbolCount[symbol] || 0) + 1;
+        });
+
+        const labels = Object.keys(symbolCount);
+        const data = Object.values(symbolCount);
+        const colors = ['#0d6efd', '#fd7e14', '#198754', '#dc3545', '#6f42c1', '#ffc107', '#20c997', '#e83e8c'];
+
+        symbolPieChart = new Chart(document.getElementById('symbolPieChart'), {
+            type: 'pie',
+            data: { labels: labels, datasets: [{ data: data, backgroundColor: colors }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    function renderHoldingStackedChart(positions) {
+        if (!positions || positions.length === 0) return;
+        const holdingData = {};
+        positions.forEach(p => {
+            const holding = p.holding_period || 'Unknown';
+            const volume = parseFloat(p.volume) || 0;
+            if (!holdingData[holding]) holdingData[holding] = { volume: 0, count: 0 };
+            holdingData[holding].volume += volume;
+            holdingData[holding].count += 1;
+        });
+
+        const labels = Object.keys(holdingData);
+        const volumeData = labels.map(h => holdingData[h].volume);
+        const countData = labels.map(h => holdingData[h].count);
+
+        holdingStackedChart = new Chart(document.getElementById('holdingStackedChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Volume', data: volumeData, backgroundColor: '#0d6efd' },
+                    { label: 'Transaction Count', data: countData, backgroundColor: '#198754' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, title: { display: true, text: 'Holding Period' } },
+                    y: { stacked: true, title: { display: true, text: 'Value' } }
+                },
+                plugins: { legend: { position: 'top' } }
+            }
+        });
+    }
+
+    socket.on('ras-result', (receivedData) => {
+        document.getElementById('loading').classList.add('d-none');
+        renderRASReport(receivedData);
+    });
+
+    socket.on('ras-error', (msg) => {
+        document.getElementById('loading').classList.add('d-none');
+        alert("Error: " + msg);
+    });
+
+    // Improved PDF Export (widens page + hides navbar like reference)
+    document.getElementById('print-pdf').addEventListener('click', async () => {
+       const DESKTOP_W = 1400;
+       const MARGIN_IN = 0.4;
+       const navbar = document.querySelector('.navbar');
+       const body = document.body;
+       const html = document.documentElement;
+       const collapse = document.querySelector('.navbar-collapse');
+       const element = document.getElementById('reports-content') || body;
+
+       // Read the CURRENT theme at the moment Print PDF is clicked.
+       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+       // PDF paper: pure black in Dark Mode, pure white in Light Mode.
+       const pdfBg = isDark ? '#000000' : '#ffffff';
+
+       const original = {
+          bodyWidth: body.style.width,
+          bodyMaxWidth: body.style.maxWidth,
+          bodyMinWidth: body.style.minWidth,
+          bodyZoom: body.style.zoom,
+          bodyPadTop: body.style.paddingTop,
+          bodyPadLeft: body.style.paddingLeft,
+          bodyPadRight: body.style.paddingRight,
+          bodyOverflow: body.style.overflow,
+          bodyBackground: body.style.backgroundColor,
+          htmlWidth: html.style.width,
+          htmlOverflow: html.style.overflow,
+          htmlBackground: html.style.backgroundColor,
+          navbarDisplay: navbar ? navbar.style.display : '',
+          collapseClass: collapse ? collapse.className : '',
+          collapseStyle: collapse ? collapse.getAttribute('style') : null,
+          elementBackground: element.style.backgroundColor,
+          elementPadding: element.style.padding,
+          elementBoxSizing: element.style.boxSizing,
+          elementWidth: element.style.width
+       };
+
+       const hiddenEls = [];
+
+       try {
+          document.querySelectorAll(
+             '.theme-toggle, #print-pdf, .copy-table-btn, .suffix-btn, .navbar-toggler'
+          ).forEach((el) => {
+             hiddenEls.push([el, el.style.display]);
+             el.style.display = 'none';
+          });
+
+          // Force desktop layout for PDF export.
+          body.style.width = DESKTOP_W + 'px';
+          body.style.maxWidth = 'none';
+          body.style.minWidth = DESKTOP_W + 'px';
+          body.style.zoom = '1';
+          body.style.paddingTop = '0';
+          body.style.paddingLeft = '0';
+          body.style.paddingRight = '0';
+          body.style.overflow = 'visible';
+          body.style.backgroundColor = pdfBg;
+
+          html.style.width = DESKTOP_W + 'px';
+          html.style.overflow = 'visible';
+          html.style.backgroundColor = pdfBg;
+
+          if (navbar) navbar.style.display = 'none';
+
+          if (collapse) {
+             collapse.classList.add('show');
+             collapse.style.display = 'flex';
+          }
+
+          /*
+           * html2pdf normally leaves the jsPDF page/margin area white.
+           * Make the export element itself the complete PDF paper.
+           * The 0.4in padding preserves the previous PDF margin.
+           */
+          element.style.backgroundColor = pdfBg;
+          element.style.boxSizing = 'border-box';
+          element.style.padding = `${MARGIN_IN}in`;
+          element.style.width = DESKTOP_W + 'px';
+
+          void body.offsetHeight;
+          void element.offsetHeight;
+
+          const contentW = Math.max(
+             element.scrollWidth || 0,
+             element.offsetWidth || 0,
+             DESKTOP_W
+          );
+
+          const contentH = Math.max(
+             element.scrollHeight || 0,
+             body.scrollHeight || 0,
+             900
+          );
+
+          // No jsPDF margin: the export element already contains
+          // the 0.4in paper padding and its background.
+          const pageW = Math.max(contentW / 96, 8.5);
+          const pageH = Math.max(contentH / 96, 11);
+
+          await html2pdf().from(element).set({
+             margin: 0,
+             filename: `RAS_Report_${(document.getElementById('current-login') && document.getElementById('current-login').textContent) || 'unknown'}.pdf`,
+             image: {
+                type: 'jpeg',
+                quality: 0.98
+             },
+             html2canvas: {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: pdfBg,
+                windowWidth: DESKTOP_W,
+                windowHeight: contentH,
+                scrollX: 0,
+                scrollY: 0,
+                onclone: (doc) => {
+                   const clonedHtml = doc.documentElement;
+                   const clonedBody = doc.body;
+                      const clonedElement = doc.getElementById('reports-content');
+                   // Preserve the exact theme active when Print PDF was clicked.
+                   clonedHtml.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                   clonedBody.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+                   // Make the entire captured canvas use the PDF paper color.
+                   clonedHtml.style.backgroundColor = pdfBg;
+                   clonedBody.style.backgroundColor = pdfBg;
+                   clonedBody.style.width = DESKTOP_W + 'px';
+                   clonedBody.style.minWidth = DESKTOP_W + 'px';
+                   clonedBody.style.maxWidth = 'none';
+                   clonedBody.style.padding = '0';
+
+                      if (clonedElement) {
+                         clonedElement.style.backgroundColor = pdfBg;
+                         clonedElement.style.boxSizing = 'border-box';
+                         clonedElement.style.padding = `${MARGIN_IN}in`;
+                         clonedElement.style.width = DESKTOP_W + 'px';
+                      }
+                   const nav = clonedBody.querySelector('.navbar');
+                   if (nav) nav.style.display = 'none';
+
+                   clonedBody.querySelectorAll(
+                      '.theme-toggle, #print-pdf, .copy-table-btn, .suffix-btn, .navbar-toggler'
+                   ).forEach((el) => {
+                      el.style.display = 'none';
+                   });
+
+                   // Keep CSS colors exact in the html2canvas clone.
+                   clonedBody.querySelectorAll('*').forEach((el) => {
+                      el.style.webkitPrintColorAdjust = 'exact';
+                      el.style.printColorAdjust = 'exact';
+                   });
+                }
+             },
+             jsPDF: {
+                unit: 'in',
+                format: [pageW, pageH],
+                orientation: pageW >= pageH ? 'landscape' : 'portrait'
+             },
+             pagebreak: {
+                mode: ['css', 'legacy']
+             }
+          }).save();
+       } catch (err) {
+          console.error('PDF export failed', err);
+       } finally {
+          // Restore the page exactly to its pre-export state.
+          body.style.width = original.bodyWidth;
+          body.style.maxWidth = original.bodyMaxWidth;
+          body.style.minWidth = original.bodyMinWidth;
+          body.style.zoom = original.bodyZoom;
+          body.style.paddingTop = original.bodyPadTop;
+          body.style.paddingLeft = original.bodyPadLeft;
+          body.style.paddingRight = original.bodyPadRight;
+          body.style.overflow = original.bodyOverflow;
+          body.style.backgroundColor = original.bodyBackground;
+
+          html.style.width = original.htmlWidth;
+          html.style.overflow = original.htmlOverflow;
+          html.style.backgroundColor = original.htmlBackground;
+
+          if (navbar) navbar.style.display = original.navbarDisplay;
+
+          if (collapse) {
+             collapse.className = original.collapseClass;
+
+             if (original.collapseStyle === null) {
+                collapse.removeAttribute('style');
+             } else {
+                collapse.setAttribute('style', original.collapseStyle);
+             }
+          }
+
+          element.style.backgroundColor = original.elementBackground;
+          element.style.padding = original.elementPadding;
+          element.style.boxSizing = original.elementBoxSizing;
+          element.style.width = original.elementWidth;
+
+          hiddenEls.forEach(([el, display]) => {
+             el.style.display = display;
+          });
+       }
+});
+
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+         document.body.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        const btn = document.getElementById('theme-toggle');
+        if (theme === 'dark') {
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>`;
+            btn.title = "Switch to Light Mode";
+        } else {
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>`;
+            btn.title = "Switch to Dark Mode";
+        }
+    }
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        setTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const saved = localStorage.getItem('theme') || 'light';
+        setTheme(saved);
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+        const toggler = document.querySelector('.navbar-toggler');
+        if (toggler) toggler.addEventListener('click', function () { this.classList.toggle('rotated'); });
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PrinceJF - Summary Clearing Fee</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' fill='white'/%3E%3Cellipse cx='50' cy='50' rx='35' ry='10' fill='none' stroke='white' stroke-width='4'/%3E%3C/svg%3E">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+    <style>
+      :root {
+         --bg: #e0e5ec; --bg-soft: #e8edf3; --text: #2d3748; --text-muted: #718096;
+         --accent: #4a6cf7; --accent-soft: rgba(74, 108, 247, 0.12);
+         --success: #10b981; --warning: #f59e0b; --info: #0ea5e9; --danger: #ef4444;
+         --shadow-out: 8px 8px 16px #a3b1c6, -8px -8px 16px #ffffff;
+         --shadow-out-sm: 4px 4px 10px #a3b1c6, -4px -4px 10px #ffffff;
+         --shadow-in: inset 5px 5px 10px #a3b1c6, inset -5px -5px 10px #ffffff;
+         --shadow-in-sm: inset 3px 3px 6px #a3b1c6, inset -3px -3px 6px #ffffff;
+         --radius: 18px; --radius-sm: 12px; --radius-pill: 999px;
+         --card-bg: #e0e5ec; --table-header: #d4dbe6; --border-soft: rgba(163, 177, 198, 0.35);
+         --navbar-bg: #e0e5ec;
+      }
+      [data-theme="dark"] {
+         --bg: #1a1d24; --bg-soft: #22262f; --text: #e2e8f0; --text-muted: #94a3b8;
+         --accent: #7c9cff; --accent-soft: rgba(124, 156, 255, 0.15);
+         --success: #34d399; --warning: #fbbf24; --info: #38bdf8; --danger: #f87171;
+         --shadow-out: 8px 8px 18px #0d0f14, -8px -8px 18px #2a2f3a;
+         --shadow-out-sm: 4px 4px 12px #0d0f14, -4px -4px 12px #2a2f3a;
+         --shadow-in: inset 5px 5px 12px #0d0f14, inset -5px -5px 12px #2a2f3a;
+         --shadow-in-sm: inset 3px 3px 7px #0d0f14, inset -3px -3px 7px #2a2f3a;
+         --card-bg: #1a1d24; --table-header: #252a34; --border-soft: rgba(148, 163, 184, 0.12);
+         --navbar-bg: #1a1d24;
+      }
+      * { box-sizing: border-box; }
+      body {
+         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+         background: var(--bg) !important; color: var(--text) !important;
+         padding: 16px !important; padding-top: 96px !important;
+         min-height: 100dvh; transition: background 0.45s ease, color 0.45s ease;
+         -webkit-font-smoothing: antialiased; letter-spacing: -0.01em;
+      }
+      .navbar {
+         position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+         width: min(94%, 1180px); background: var(--navbar-bg) !important;
+         box-shadow: var(--shadow-out); border: none !important; border-radius: var(--radius);
+         padding: 10px 16px; z-index: 1030; transition: box-shadow 0.4s ease, background 0.4s ease;
+      }
+      .navbar-brand { font-weight: 700; color: var(--accent) !important; font-size: 1.25rem; letter-spacing: -0.02em; padding: 6px 12px; border-radius: var(--radius-sm); }
+      .navbar-nav .nav-link { color: var(--text) !important; font-size: 0.9rem; font-weight: 500; padding: 8px 14px !important; margin: 2px 3px; border-radius: var(--radius-sm); transition: all 0.25s ease; }
+      .navbar-nav .nav-link:hover { color: var(--accent) !important; background: var(--accent-soft); box-shadow: var(--shadow-in-sm); }
+      .navbar-nav .nav-link.active { color: var(--accent) !important; font-weight: 600; background: var(--accent-soft); box-shadow: var(--shadow-in-sm); }
+      .theme-toggle {
+         width: 42px; height: 42px; border: none; background: var(--bg); color: var(--accent);
+         border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+         box-shadow: var(--shadow-out-sm); transition: all 0.3s ease; margin-left: auto; margin-right: 10px; flex-shrink: 0;
+      }
+      .theme-toggle:hover { box-shadow: var(--shadow-in-sm); transform: scale(1.05); }
+      .theme-toggle:active { box-shadow: var(--shadow-in); }
+      .theme-toggle svg { width: 20px; height: 20px; }
+      .navbar-toggler { border: none !important; padding: 8px; border-radius: 50%; box-shadow: var(--shadow-out-sm); background: var(--bg); transition: all 0.35s ease; }
+      .navbar-toggler:focus { box-shadow: var(--shadow-in-sm); }
+      .navbar-toggler.rotated { transform: rotate(90deg); }
+      .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(74,108,247,0.85)' stroke-width='2.2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); }
+      [data-theme="dark"] .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(124,156,255,0.9)' stroke-width='2.2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); }
+      @media (max-width: 991.98px) {
+         .navbar-collapse { background: var(--bg); border-radius: var(--radius-sm); margin-top: 12px; padding: 10px; box-shadow: var(--shadow-in-sm); }
+         .navbar-nav { margin-left: 0 !important; }
+         .navbar-nav .nav-link { padding: 12px 16px !important; }
+      }
+      @media (max-width: 575.98px) {
+         .navbar { top: 10px; width: 96%; padding: 8px 12px; }
+      }
+
+      h1, h2, h3, .page-title, .text-primary { font-weight: 700 !important; letter-spacing: -0.03em; color: var(--text) !important; }
+      .card {
+         background: var(--card-bg) !important; border: none !important; border-radius: var(--radius) !important;
+         box-shadow: var(--shadow-out) !important; overflow: hidden;
+      }
+      .card-header {
+         background: transparent !important; border-bottom: 1px solid var(--border-soft) !important;
+         padding: 16px 20px !important;
+      }
+      .card-body { padding: 20px !important; }
+      .section-header { font-weight: 600 !important; color: var(--text) !important; font-size: 1.05rem !important; }
+      .btn {
+         border-radius: var(--radius-sm) !important; font-weight: 600 !important; letter-spacing: -0.01em;
+         box-shadow: var(--shadow-out-sm); border: none !important; transition: all 0.25s ease;
+      }
+      .btn:hover { transform: translateY(-1px); }
+      .btn-primary { background: var(--accent) !important; color: #fff !important; }
+      .btn-primary:hover { filter: brightness(1.08); box-shadow: var(--shadow-out-sm); }
+      .btn-outline-secondary {
+         background: var(--bg) !important; color: var(--text) !important; box-shadow: var(--shadow-out-sm);
+      }
+      .btn-outline-secondary:hover { box-shadow: var(--shadow-in-sm); color: var(--accent) !important; }
+      .btn-success { background: var(--success) !important; color: #fff !important; }
+      .btn-light { background: var(--bg) !important; color: var(--text) !important; box-shadow: var(--shadow-out-sm); }
+      .form-label { font-weight: 600 !important; color: var(--text-muted) !important; font-size: 0.85rem !important; }
+      .form-control, .form-select, input, select, textarea {
+         background: var(--bg) !important; color: var(--text) !important; border: none !important;
+         border-radius: var(--radius-sm) !important; box-shadow: var(--shadow-in-sm) !important;
+         padding: 10px 14px !important; -webkit-text-fill-color: var(--text) !important;
+      }
+      .form-control:focus, .form-select:focus { box-shadow: var(--shadow-in) !important; outline: none !important; }
+      .file-drop {
+         border: 2px dashed var(--border-soft); border-radius: var(--radius-sm);
+         padding: 28px 18px; text-align: center; background: var(--bg-soft);
+         transition: border-color 0.2s, background 0.2s; cursor: pointer;
+      }
+      .file-drop:hover, .file-drop.dragover {
+         border-color: var(--accent); background: var(--accent-soft);
+      }
+      .file-drop .file-name {
+         font-weight: 600; color: var(--accent); margin-top: 8px; word-break: break-all;
+      }
+      .file-drop .hint { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+      .status-box {
+         border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 16px;
+         box-shadow: var(--shadow-in-sm); display: none;
+      }
+      .status-box.show { display: block; }
+      .status-box.info { background: var(--accent-soft); color: var(--accent); }
+      .status-box.success { background: rgba(16, 185, 129, 0.12); color: var(--success); }
+      .status-box.error { background: rgba(239, 68, 68, 0.12); color: var(--danger); }
+      .spinner-border { width: 1.25rem; height: 1.25rem; border-width: 0.15em; }
+      .page-title-row a { text-decoration: none; }
+      .page-title-row h5 {
+         font-weight: 400 !important;
+         letter-spacing: -0.02em;
+         font-size: clamp(1.05rem, 2.5vw, 1.25rem) !important;
+         color: var(--text) !important;
+      }
+      .page-title-row h5 strong {
+         font-weight: 700 !important;
+         color: var(--accent, #4a6cf7) !important;
+      }
+      .page-title-row h5 .title-desc {
+         font-weight: 400 !important;
+         color: var(--text-muted, #6c757d) !important;
+      }
+
+      /* Results */
+      #result-section { display: none; margin-top: 24px; }
+      #result-section.show { display: block; }
+      .sheet-tabs {
+         display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+      }
+      .sheet-tab {
+         background: var(--bg) !important; color: var(--text) !important; border: none !important;
+         font-weight: 600 !important; font-size: 0.9rem !important; padding: 10px 20px !important;
+         border-radius: var(--radius-pill) !important; box-shadow: var(--shadow-out-sm) !important;
+         cursor: pointer; transition: all 0.25s ease;
+      }
+      .sheet-tab:hover { box-shadow: var(--shadow-in-sm) !important; color: var(--accent) !important; }
+      .sheet-tab.active {
+         box-shadow: var(--shadow-in) !important; color: var(--accent) !important;
+      }
+      .table-responsive {
+         border-radius: var(--radius-sm) !important; box-shadow: var(--shadow-in-sm) !important;
+         padding: 4px; background: var(--bg) !important; max-height: 70vh; overflow: auto;
+      }
+      .summary-table {
+         width: 100%; border-collapse: collapse; font-size: 0.78rem; margin: 0;
+         color: var(--text);
+      }
+      .summary-table th, .summary-table td {
+         padding: 6px 10px; white-space: nowrap; border-bottom: 1px solid var(--border-soft);
+         vertical-align: middle;
+      }
+      .summary-table thead th {
+         background: var(--table-header) !important; font-weight: 600; font-size: 0.72rem;
+         text-transform: uppercase; letter-spacing: 0.02em; color: var(--text-muted);
+         position: sticky; top: 0; z-index: 2;
+      }
+      .summary-table tbody tr:hover { background: var(--accent-soft); }
+      .summary-table .title-row td {
+         font-weight: 700; font-size: 0.95rem; text-align: center;
+         padding: 12px 10px; background: var(--accent-soft); color: var(--accent);
+      }
+      .summary-table .total-row td {
+         font-weight: 700; background: #ffff99 !important; color: #1a1a1a !important;
+      }
+      [data-theme="dark"] .summary-table .total-row td {
+         background: #b59f00 !important; color: #fff !important;
+      }
+      .summary-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+      .summary-table .cell-green { background: rgba(146, 208, 80, 0.35) !important; }
+      .summary-table .cell-orange { background: rgba(255, 165, 0, 0.35) !important; }
+      .summary-table .neg { color: var(--danger); }
+      .result-toolbar {
+         display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+         justify-content: space-between; margin-bottom: 12px;
+      }
+      .result-title { font-weight: 700; font-size: 1rem; color: var(--text); margin: 0; }
+    </style>
+<script src="../../assets/mock-socket.js"></script>
+</head>
+<body data-theme="light">
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../../hsb/lpa.html">Remember Me.</a>
+            <button id="theme-toggle" class="theme-toggle" title="Toggle Dark Mode" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            </button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mb-2 mb-lg-0 ms-auto">
+               <li class="nav-item"><a class="nav-link" href="../../index.html">About</a></li>
+               <li class="nav-item"><a class="nav-link" href="../../hsb/tlm.html">TLM</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/lpa.html">LPA</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/ect.html">ECT</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="../../hsb/drs.html">DRS</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/ras.html">RAS</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/isr.html">ISR</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/pd.html">PD</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-xl-11">
+                <div class="d-flex justify-content-between align-items-center page-title-row mb-3">
+                    <h5 class="mb-0"><strong>SummaryClearingFee</strong> <span class="title-desc"> | Gathered from Nexus OTC SPA</span></h5>
+                    <a href="../../hsb/drs.html" class="btn btn-outline-secondary btn-sm">← Back to DRS</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 section-header">Insert OTC Clearing Fee Excel files</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="clearing-fee-form" enctype="multipart/form-data">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">1. HSB SPA ClearingFee XLSX</label>
+                                    <div class="file-drop" id="hsb-drop" data-target="hsb-file">
+                                        <div>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="color: var(--accent); opacity: 0.85;">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                            </svg>
+                                        </div>
+                                        <div class="hint">Click or drag &amp; drop HSB Excel</div>
+                                        <div class="hint">.xlsx / .xls</div>
+                                        <div class="file-name d-none" id="hsb-name"></div>
+                                    </div>
+                                    <input type="file" id="hsb-file" name="hsb" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="d-none" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">2. LMR SPA ClearingFee XLSX</label>
+                                    <div class="file-drop" id="lmr-drop" data-target="lmr-file">
+                                        <div>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="color: var(--accent); opacity: 0.85;">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                            </svg>
+                                        </div>
+                                        <div class="hint">Click or drag &amp; drop LMR Excel</div>
+                                        <div class="hint">.xlsx / .xls</div>
+                                        <div class="file-name d-none" id="lmr-name"></div>
+                                    </div>
+                                    <input type="file" id="lmr-file" name="lmr" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="d-none" required>
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 mt-4">
+                                <button type="submit" id="btn-generate" class="btn btn-primary px-4" title="Demo Start">
+                                    Generate Summary
+                                </button>
+                                <button type="button" id="btn-clear" class="btn btn-outline-secondary px-4">
+                                    Clear
+                                </button>
+                            </div>
+                        </form>
+
+                        <div id="status-info" class="status-box info"></div>
+                        <div id="status-success" class="status-box success"></div>
+                        <div id="status-error" class="status-box error"></div>
+                    </div>
+                </div>
+
+                <!-- Preview + download -->
+                <div id="result-section" class="card mt-4">
+                    <div class="card-header">
+                        <div class="result-toolbar">
+                            <h5 class="result-title mb-0" id="result-file-title">Summary result</h5>
+                            <button type="button" id="btn-download" class="btn btn-success btn-sm px-3">
+                                Download Excel
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="sheet-tabs" id="sheet-tabs"></div>
+                        <div class="table-responsive" id="sheet-table-wrap">
+                            <table class="summary-table" id="sheet-table">
+                                <thead></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    (function () {
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        const saved = localStorage.getItem('theme') || 'light';
+        body.setAttribute('data-theme', saved);
+        themeToggle.addEventListener('click', () => {
+            const next = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        });
+
+        document.querySelector('.navbar-toggler')?.addEventListener('click', function () {
+            this.classList.toggle('rotated');
+        });
+
+        function wireDropZone(dropId, inputId, nameId) {
+            const drop = document.getElementById(dropId);
+            const input = document.getElementById(inputId);
+            const nameEl = document.getElementById(nameId);
+
+            drop.addEventListener('click', () => input.click());
+            drop.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                drop.classList.add('dragover');
+            });
+            drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+            drop.addEventListener('drop', (e) => {
+                e.preventDefault();
+                drop.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files && files.length) {
+                    input.files = files;
+                    showFileName(input, nameEl);
+                }
+            });
+            input.addEventListener('change', () => showFileName(input, nameEl));
+        }
+
+        function showFileName(input, nameEl) {
+            if (input.files && input.files[0]) {
+                nameEl.textContent = input.files[0].name;
+                nameEl.classList.remove('d-none');
+            } else {
+                nameEl.textContent = '';
+                nameEl.classList.add('d-none');
+            }
+        }
+
+        wireDropZone('hsb-drop', 'hsb-file', 'hsb-name');
+        wireDropZone('lmr-drop', 'lmr-file', 'lmr-name');
+
+        const form = document.getElementById('clearing-fee-form');
+        const btnGenerate = document.getElementById('btn-generate');
+        const btnClear = document.getElementById('btn-clear');
+        const btnDownload = document.getElementById('btn-download');
+        const statusInfo = document.getElementById('status-info');
+        const statusSuccess = document.getElementById('status-success');
+        const statusError = document.getElementById('status-error');
+        const resultSection = document.getElementById('result-section');
+        const sheetTabs = document.getElementById('sheet-tabs');
+        const sheetTable = document.getElementById('sheet-table');
+        const resultFileTitle = document.getElementById('result-file-title');
+
+        let lastBlob = null;
+        let lastFilename = 'Summary of Clearing Fee.xlsx';
+        let workbookData = null; // { sheetName: rows[][] }
+        let activeSheet = null;
+
+        function hideStatus() {
+            statusInfo.classList.remove('show');
+            statusSuccess.classList.remove('show');
+            statusError.classList.remove('show');
+            statusInfo.innerHTML = '';
+            statusSuccess.innerHTML = '';
+            statusError.innerHTML = '';
+        }
+        function showInfo(html) {
+            hideStatus();
+            statusInfo.innerHTML = html;
+            statusInfo.classList.add('show');
+        }
+        function showSuccess(html) {
+            hideStatus();
+            statusSuccess.innerHTML = html;
+            statusSuccess.classList.add('show');
+        }
+        function showError(html) {
+            hideStatus();
+            statusError.innerHTML = html;
+            statusError.classList.add('show');
+        }
+
+        function clearResult() {
+            lastBlob = null;
+            workbookData = null;
+            activeSheet = null;
+            resultSection.classList.remove('show');
+            sheetTabs.innerHTML = '';
+            sheetTable.querySelector('thead').innerHTML = '';
+            sheetTable.querySelector('tbody').innerHTML = '';
+            resultFileTitle.textContent = 'Summary result';
+        }
+
+        btnClear.addEventListener('click', () => {
+            form.reset();
+            document.getElementById('hsb-name').classList.add('d-none');
+            document.getElementById('lmr-name').classList.add('d-none');
+            document.getElementById('hsb-name').textContent = '';
+            document.getElementById('lmr-name').textContent = '';
+            hideStatus();
+            clearResult();
+        });
+
+        btnDownload.addEventListener('click', () => {
+            if (!lastBlob) return;
+            const url = URL.createObjectURL(lastBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = lastFilename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        });
+
+        function excelSerialToDate(n) {
+            // Excel serial date → JS Date (approx; SheetJS often already converts)
+            if (typeof n !== 'number' || !isFinite(n)) return n;
+            const epoch = new Date(Date.UTC(1899, 11, 30));
+            const d = new Date(epoch.getTime() + n * 86400000);
+            return d;
+        }
+
+        function formatCell(val, colIdx, isHeader) {
+            if (val == null || val === '') return '';
+            if (val instanceof Date) {
+                const dd = String(val.getUTCDate()).padStart(2, '0');
+                const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                return dd + '-' + months[val.getUTCMonth()];
+            }
+            if (typeof val === 'number' && isFinite(val)) {
+                // Col 0 often date serial if not converted
+                if (colIdx === 0 && val > 40000 && val < 60000 && !isHeader) {
+                    const d = excelSerialToDate(val);
+                    if (d instanceof Date && !isNaN(d.getTime())) {
+                        const dd = String(d.getUTCDate()).padStart(2, '0');
+                        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                        return dd + '-' + months[d.getUTCMonth()];
+                    }
+                }
+                return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+            return String(val);
+        }
+
+        function isTotalRow(row) {
+            if (!row || !row.length) return false;
+            const first = row[0];
+            return first != null && String(first).trim().toLowerCase() === 'total';
+        }
+
+        function renderSheet(name) {
+            activeSheet = name;
+            const rows = workbookData[name] || [];
+            const thead = sheetTable.querySelector('thead');
+            const tbody = sheetTable.querySelector('tbody');
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+
+            document.querySelectorAll('.sheet-tab').forEach((btn) => {
+                btn.classList.toggle('active', btn.dataset.sheet === name);
+            });
+
+            if (!rows.length) {
+                tbody.innerHTML = '<tr><td class="text-muted">No data</td></tr>';
+                return;
+            }
+
+            // Row 0 = title (merged in Excel), Row 1 = headers, rest = data
+            const titleRow = rows[0] || [];
+            const headerRow = rows[1] || [];
+            const dataRows = rows.slice(2);
+
+            // Title
+            if (titleRow.some((c) => c != null && String(c).trim() !== '')) {
+                const tr = document.createElement('tr');
+                tr.className = 'title-row';
+                const td = document.createElement('td');
+                td.colSpan = Math.max(headerRow.length, titleRow.length, 1);
+                td.textContent = String(titleRow[0] || titleRow.find((c) => c) || '');
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            }
+
+            // Header
+            const hr = document.createElement('tr');
+            const greenHeaders = new Set([
+                'Total Lot (US Stock)',
+                'Total Lot (Floating Rate)',
+                'Total All Lots',
+                'Total Clearing Fee',
+                'HSB'
+            ]);
+            headerRow.forEach((h, i) => {
+                const th = document.createElement('th');
+                const text = h == null ? '' : String(h);
+                th.textContent = text;
+                if (greenHeaders.has(text)) th.classList.add('cell-green');
+                // Column P (index 15) orange spacer in source
+                if (i === 15) th.classList.add('cell-orange');
+                hr.appendChild(th);
+            });
+            thead.appendChild(hr);
+
+            // Data + total
+            dataRows.forEach((row) => {
+                const tr = document.createElement('tr');
+                const total = isTotalRow(row);
+                if (total) tr.className = 'total-row';
+
+                const maxCols = Math.max(headerRow.length, row.length);
+                for (let i = 0; i < maxCols; i++) {
+                    const td = document.createElement('td');
+                    const raw = row[i];
+                    const text = formatCell(raw, i, false);
+                    td.textContent = text;
+
+                    const isNum = typeof raw === 'number' || /^-?[\d,]+\.?\d*$/.test(String(raw || '').replace(/,/g, ''));
+                    if (isNum && i !== 0 && !total) {
+                        td.classList.add('num');
+                        if (typeof raw === 'number' && raw < 0) td.classList.add('neg');
+                    }
+                    if (i === 15) td.classList.add('cell-orange');
+                    // Green highlight columns matching green headers (by index of known names)
+                    const hName = headerRow[i] != null ? String(headerRow[i]) : '';
+                    if (greenHeaders.has(hName) && hName !== 'HSB') td.classList.add('cell-green');
+
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            });
+        }
+
+        function displayWorkbook(blob, filename) {
+            lastBlob = blob;
+            lastFilename = filename || lastFilename;
+            resultFileTitle.textContent = lastFilename;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const wb = XLSX.read(data, { type: 'array', cellDates: true });
+                    workbookData = {};
+                    sheetTabs.innerHTML = '';
+
+                    wb.SheetNames.forEach((name, idx) => {
+                        const sheet = wb.Sheets[name];
+                        const rows = XLSX.utils.sheet_to_json(sheet, {
+                            header: 1,
+                            defval: '',
+                            raw: true
+                        });
+                        workbookData[name] = rows;
+
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'sheet-tab' + (idx === 0 ? ' active' : '');
+                        btn.dataset.sheet = name;
+                        btn.textContent = name;
+                        btn.addEventListener('click', () => renderSheet(name));
+                        sheetTabs.appendChild(btn);
+                    });
+
+                    resultSection.classList.add('show');
+                    if (wb.SheetNames.length) {
+                        renderSheet(wb.SheetNames[0]);
+                    }
+                    showSuccess(
+                        'Summary generated successfully. Preview below — use <strong>Download Excel</strong> to save the file.'
+                    );
+                    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } catch (err) {
+                    console.error(err);
+                    showError('Generated file received but could not be parsed for preview: ' + err.message);
+                    // Still allow download
+                    resultSection.classList.add('show');
+                    sheetTabs.innerHTML = '';
+                    sheetTable.querySelector('thead').innerHTML = '';
+                    sheetTable.querySelector('tbody').innerHTML =
+                        '<tr><td class="text-muted">Preview unavailable — you can still download the Excel file.</td></tr>';
+                }
+            };
+            reader.onerror = () => showError('Failed to read generated workbook for preview.');
+            reader.readAsArrayBuffer(blob);
+        }
+
+        form.addEventListener('submit', async (e) => {
+            // DEMO_INTERCEPT — allow start without real upload
+            e.preventDefault();
+            const loading = document.getElementById('loading') || document.getElementById('result-area');
+            const resultBox = document.getElementById('result-container') || document.getElementById('result-area');
+            if (document.getElementById('btn-generate')) document.getElementById('btn-generate').disabled = true;
+            try {
+                const res = await fetch('/api/drs/summary-clearing-fee', { method: 'POST', body: new FormData() });
+                const data = await res.json();
+                // Prefer existing result renderer if present
+                if (typeof showResult === 'function') showResult(data);
+                else if (typeof renderResult === 'function') renderResult(data);
+                else {
+                    const box = document.getElementById('result-container') || document.getElementById('result-area') || document.getElementById('reports-content');
+                    if (box) {
+                        box.classList.remove('d-none');
+                        const rows = data.rows || [];
+                        let html = '<div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>Login</th><th>Symbol</th><th>Volume</th><th>ClearingFee</th><th>Profit</th></tr></thead><tbody>';
+                        rows.forEach(r => { html += `<tr><td>${r.Login||'-'}</td><td>${r.Symbol||'-'}</td><td>${r.Volume||'-'}</td><td>${r.ClearingFee||'-'}</td><td>${r.Profit||'-'}</td></tr>`; });
+                        html += '</tbody></table></div><p class="text-muted small mt-2">Demo mode — dummy clearing fee rows</p>';
+                        box.innerHTML = html;
+                    }
+                }
+            } catch (err) {
+                alert('Demo error: ' + err.message);
+            } finally {
+                if (document.getElementById('btn-generate')) document.getElementById('btn-generate').disabled = false;
+            }
+            return;
+            // original handler below (unreachable in demo)
+
+            e.preventDefault();
+            hideStatus();
+            clearResult();
+
+            const hsbInput = document.getElementById('hsb-file');
+            const lmrInput = document.getElementById('lmr-file');
+
+            if (!hsbInput.files || !hsbInput.files[0]) {
+                showError('Please select the <strong>HSB OTC Clearing Fee</strong> Excel file.');
+                return;
+            }
+            if (!lmrInput.files || !lmrInput.files[0]) {
+                showError('Please select the <strong>LMR OTC Clearing Fee</strong> Excel file.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('hsb', hsbInput.files[0]);
+            formData.append('lmr', lmrInput.files[0]);
+
+            btnGenerate.disabled = true;
+            btnGenerate.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating…';
+            showInfo('Uploading files and running summaryclearingfee.py…');
+
+            try {
+                const res = await fetch('/api/drs/summary-clearing-fee', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const contentType = (res.headers.get('content-type') || '').toLowerCase();
+
+                if (contentType.includes('application/json')) {
+                    const payload = await res.json();
+                    if (!res.ok) {
+                        throw new Error(payload.error || payload.message || ('HTTP ' + res.status));
+                    }
+                    showSuccess(payload.message || 'Summary generated.');
+                    return;
+                }
+
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(text || ('HTTP ' + res.status));
+                }
+
+                // Excel binary (or octet-stream)
+                const blob = await res.blob();
+                const disposition = res.headers.get('content-disposition') || '';
+                let filename = 'Summary of Clearing Fee.xlsx';
+                const match = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+                if (match && match[1]) {
+                    filename = match[1].replace(/['"]/g, '').trim();
+                }
+
+                displayWorkbook(blob, filename);
+            } catch (err) {
+                console.error(err);
+                showError('Failed to generate summary: ' + (err.message || String(err)));
+            } finally {
+                btnGenerate.disabled = false;
+                btnGenerate.innerHTML = 'Generate Summary';
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

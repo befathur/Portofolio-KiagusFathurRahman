@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8" />
+   <title>PrinceJF - TLM Dev Mode</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' fill='white'/%3E%3Cellipse cx='50' cy='50' rx='35' ry='10' fill='none' stroke='white' stroke-width='4'/%3E%3C/svg%3E">
+   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+   <style>
+
+      :root {
+         --bg: #e0e5ec; --bg-soft: #e8edf3; --text: #2d3748; --text-muted: #718096;
+         --accent: #4a6cf7; --accent-soft: rgba(74, 108, 247, 0.12);
+         --success: #10b981; --warning: #f59e0b; --info: #0ea5e9; --danger: #ef4444;
+         --shadow-out: 8px 8px 16px #a3b1c6, -8px -8px 16px #ffffff;
+         --shadow-out-sm: 4px 4px 10px #a3b1c6, -4px -4px 10px #ffffff;
+         --shadow-in: inset 5px 5px 10px #a3b1c6, inset -5px -5px 10px #ffffff;
+         --shadow-in-sm: inset 3px 3px 6px #a3b1c6, inset -3px -3px 6px #ffffff;
+         --radius: 18px; --radius-sm: 12px; --radius-pill: 999px;
+         --card-bg: #e0e5ec; --table-header: #d4dbe6; --border-soft: rgba(163, 177, 198, 0.35);
+         --navbar-bg: #e0e5ec;
+      }
+      [data-theme="dark"] {
+         --bg: #1a1d24; --bg-soft: #22262f; --text: #e2e8f0; --text-muted: #94a3b8;
+         --accent: #7c9cff; --accent-soft: rgba(124, 156, 255, 0.15);
+         --success: #34d399; --warning: #fbbf24; --info: #38bdf8; --danger: #f87171;
+         --shadow-out: 8px 8px 18px #0d0f14, -8px -8px 18px #2a2f3a;
+         --shadow-out-sm: 4px 4px 12px #0d0f14, -4px -4px 12px #2a2f3a;
+         --shadow-in: inset 5px 5px 12px #0d0f14, inset -5px -5px 12px #2a2f3a;
+         --shadow-in-sm: inset 3px 3px 7px #0d0f14, inset -3px -3px 7px #2a2f3a;
+         --card-bg: #1a1d24; --table-header: #252a34; --border-soft: rgba(148, 163, 184, 0.12);
+         --navbar-bg: #1a1d24;
+      }
+      *, *::before, *::after { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+         background: var(--bg); color: var(--text); padding: 16px; padding-top: 96px;
+         min-height: 100dvh; transition: background 0.45s ease, color 0.45s ease;
+         -webkit-font-smoothing: antialiased; letter-spacing: -0.01em;
+      }
+      /* Navbar — exact match to tlm.ejs */
+      .navbar {
+         position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+         width: min(94%, 1180px); background: var(--navbar-bg) !important;
+         box-shadow: var(--shadow-out); border: none !important; border-radius: var(--radius);
+         padding: 10px 16px; z-index: 1030; transition: box-shadow 0.4s ease, background 0.4s ease;
+      }
+      .navbar-brand { font-weight: 700; color: var(--accent) !important; font-size: 1.25rem; letter-spacing: -0.02em; padding: 6px 12px; border-radius: var(--radius-sm); }
+      .navbar-nav .nav-link { color: var(--text) !important; font-size: 0.9rem; font-weight: 500; padding: 8px 14px !important; margin: 2px 3px; border-radius: var(--radius-sm); transition: all 0.25s ease; }
+      .navbar-nav .nav-link:hover { color: var(--accent) !important; background: var(--accent-soft); box-shadow: var(--shadow-in-sm); }
+      .navbar-nav .nav-link.active { color: var(--accent) !important; font-weight: 600; background: var(--accent-soft); box-shadow: var(--shadow-in-sm); }
+      .theme-toggle {
+         width: 42px; height: 42px; border: none; background: var(--bg); color: var(--accent);
+         border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+         box-shadow: var(--shadow-out-sm); transition: all 0.3s ease; margin-left: auto; margin-right: 10px; flex-shrink: 0;
+      }
+      .theme-toggle:hover { box-shadow: var(--shadow-in-sm); transform: scale(1.05); }
+      .theme-toggle:active { box-shadow: var(--shadow-in); }
+      .theme-toggle svg { width: 20px; height: 20px; }
+      .navbar-toggler { border: none !important; padding: 8px; border-radius: 50%; box-shadow: var(--shadow-out-sm); background: var(--bg); transition: all 0.35s ease; }
+      .navbar-toggler:focus { box-shadow: var(--shadow-in-sm); }
+      .navbar-toggler.rotated { transform: rotate(90deg); }
+      .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(74,108,247,0.85)' stroke-width='2.2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); }
+      [data-theme="dark"] .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(124,156,255,0.9)' stroke-width='2.2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); }
+      @media (max-width: 991.98px) {
+         .navbar-collapse { background: var(--bg); border-radius: var(--radius-sm); margin-top: 12px; padding: 10px; box-shadow: var(--shadow-in-sm); }
+         .navbar-nav { margin-left: 0 !important; }
+         .navbar-nav .nav-link { padding: 12px 16px !important; }
+      }
+      @media (max-width: 575.98px) {
+         body { padding: 12px; padding-top: 88px; }
+         .navbar { top: 10px; width: 96%; padding: 8px 12px; }
+      }
+      .page-title { text-align: center; font-weight: 700; font-size: 1.75rem; margin: 8px 0 4px; letter-spacing: -0.02em; }
+      .datetime-badge {
+         display: inline-block; padding: 6px 14px; border-radius: var(--radius-pill);
+         background: var(--bg); box-shadow: var(--shadow-in-sm); font-size: 0.85rem; color: var(--text-muted); font-weight: 500;
+      }
+      .neo-btn {
+         border: none; background: var(--bg); color: var(--accent); font-weight: 600; font-size: 0.9rem;
+         padding: 10px 18px; border-radius: var(--radius-sm); box-shadow: var(--shadow-out-sm);
+         cursor: pointer; transition: all 0.25s ease; font-family: inherit;
+      }
+      .neo-btn:hover { box-shadow: var(--shadow-in-sm); color: var(--accent); }
+      .neo-btn:active { box-shadow: var(--shadow-in); }
+
+
+/* CandleTL live panel + dark theme */
+.live-shell{font-family:Inter,"Segoe UI",system-ui,Arial,sans-serif;color:var(--cl-ink);background:radial-gradient(1200px 420px at 82% -12%,var(--cl-accent-soft) 0%,transparent 60%),var(--cl-canvas);padding:8px 4px 40px;min-height:60vh}
+.live-shell *{box-sizing:border-box}
+:root, [data-theme="light"]{
+  --cl-ink:#131b26;--cl-muted:#66788c;--cl-line:#e4e9f0;--cl-panel:#fff;--cl-canvas:#f6f8fb;
+  --cl-accent:#2f6df6;--cl-accent-soft:#e9f0fe;--cl-green:#12885f;--cl-amber:#b7791f;--cl-red:#d13b3b;
+  --cl-radius:14px;--cl-shadow:0 1px 2px rgba(20,30,45,.05),0 10px 30px rgba(20,30,45,.06)
+}
+[data-theme="dark"]{
+  --cl-ink:#e2e8f0;--cl-muted:#94a3b8;--cl-line:rgba(148,163,184,.15);--cl-panel:#1a1d24;--cl-canvas:#12151c;
+  --cl-accent:#7c9cff;--cl-accent-soft:rgba(124,156,255,.12);--cl-green:#34d399;--cl-amber:#fbbf24;--cl-red:#f87171;
+  --cl-shadow:0 1px 2px rgba(0,0,0,.2),0 10px 30px rgba(0,0,0,.35)
+}
+.live-topline{display:flex;justify-content:space-between;gap:22px;align-items:center;max-width:1560px;margin:0 auto 16px;background:linear-gradient(120deg,#16202e 0%,#1f3350 100%);color:#eaf1fb;border-radius:var(--cl-radius);padding:22px 26px;box-shadow:var(--cl-shadow)}
+.live-kicker{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8fb4ff;margin-bottom:8px}
+.live-topline h1{font-size:26px;margin:0 0 6px;letter-spacing:-.3px;font-weight:700}.live-topline p{margin:0;color:#aebfd6;font-size:13.5px;max-width:640px}
+.live-status-box{min-width:230px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:12px 16px;display:grid;grid-template-columns:12px 1fr;gap:2px 10px;backdrop-filter:blur(4px)}
+.live-status-box strong{font-size:15px;color:#fff}.live-status-box span:last-child{grid-column:2;color:#aebfd6;font-size:12px}
+.status-dot{width:10px;height:10px;border-radius:50%;background:var(--cl-muted);margin-top:5px}.status-dot.ok{background:var(--cl-green);box-shadow:0 0 0 4px rgba(18,136,95,.22)}.status-dot.err{background:var(--cl-red);box-shadow:0 0 0 4px rgba(209,59,59,.22)}
+.live-kpis{max-width:1560px;margin:0 auto 16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.live-kpis>div{background:var(--cl-panel);border:1px solid var(--cl-line);border-radius:var(--cl-radius);padding:15px 18px;box-shadow:var(--cl-shadow);position:relative;overflow:hidden}
+.live-kpis>div::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cl-accent)}
+.live-kpis span{display:block;color:var(--cl-muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}.live-kpis strong{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--cl-ink)}
+.signal-monitor-panel,.asset-monitor-panel,.severity-monitor-panel,.live-grid,.live-events{max-width:1560px;margin:0 auto}
+.signal-monitor-panel,.asset-monitor-panel,.severity-monitor-panel,.live-table-panel,.live-detail-panel,.live-events{background:var(--cl-panel);border:1px solid var(--cl-line);border-radius:var(--cl-radius);overflow:hidden;box-shadow:var(--cl-shadow)}
+.signal-monitor-panel,.asset-monitor-panel{margin-bottom:16px}
+.signal-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:14px}.signal-summary>div{background:var(--cl-canvas);border-radius:10px;padding:11px 12px}.signal-summary span{display:block;color:var(--cl-muted);font-size:11px;font-weight:600}.signal-summary strong{display:block;margin-top:4px;font-size:15px;font-variant-numeric:tabular-nums;color:var(--cl-ink)}
+.asset-monitor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;padding:14px}
+.asset-card{background:var(--cl-panel);border:1px solid var(--cl-line);border-radius:12px;padding:12px;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .1s}
+.asset-card.stale{opacity:.6}.asset-card:hover{transform:translateY(-1px)}.asset-card:hover,.asset-card.selected{border-color:#9cc0ff;box-shadow:0 6px 18px rgba(47,109,246,.14)}
+.asset-card.selected{outline:2px solid var(--cl-accent);outline-offset:-2px}
+.asset-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.asset-card-head strong{font-size:13px;font-weight:700;color:var(--cl-ink)}
+.asset-card-sub{display:flex;justify-content:space-between;gap:8px;color:var(--cl-muted);font-size:11px;margin-top:4px}
+.data-badge{font-size:9px;font-weight:800;letter-spacing:.03em;border-radius:999px;padding:3px 8px;background:#e3f5ec;color:#0d6b4a}.data-badge.stale{background:#eef1f5;color:var(--cl-muted)}.data-badge.err{background:#fee2e2;color:#b91c1c}
+[data-theme="dark"] .data-badge{background:rgba(52,211,153,.15);color:#34d399}
+[data-theme="dark"] .data-badge.stale{background:rgba(148,163,184,.12);color:#94a3b8}
+[data-theme="dark"] .data-badge.err{background:rgba(248,113,113,.15);color:#f87171}
+.mini-spread-chart,.mini-severity-chart{width:100%;height:84px;display:block;margin-top:6px}
+.mini-severity-chart{height:100px}
+.severity-summary-line{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:8px;font-size:11px;color:var(--cl-ink);line-height:1.4}
+.live-severity-line{animation:cl-pulse 2.2s ease-in-out infinite}
+@keyframes cl-pulse{0%,100%{stroke-opacity:1}50%{stroke-opacity:.55}}
+.live-grid{margin-top:16px;display:grid;grid-template-columns:minmax(660px,1.35fr) minmax(440px,.65fr);gap:16px;align-items:start}
+.live-detail-panel{position:sticky;top:16px}
+.live-panel-head{display:flex;justify-content:space-between;gap:14px;align-items:baseline;padding:14px 18px;border-bottom:1px solid var(--cl-line)}
+.live-panel-head h2{font-size:13px;margin:0;text-transform:uppercase;letter-spacing:.05em;color:var(--cl-muted);font-weight:800}.live-panel-head span{font-size:12px;color:var(--cl-muted)}
+.live-table-wrap{overflow-x:auto}.live-table{width:100%;border-collapse:collapse;font-size:12.5px;color:var(--cl-ink)}
+.live-table th{position:sticky;top:0;background:var(--cl-canvas);color:var(--cl-muted);text-align:left;padding:10px;border-bottom:1px solid var(--cl-line);z-index:1;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+.live-table td{padding:9px 10px;border-bottom:1px solid var(--cl-line);white-space:nowrap;font-variant-numeric:tabular-nums}.live-table tr{cursor:pointer}.live-table tr:hover,.live-table tr.selected{background:var(--cl-accent-soft)}
+/* Level badges: compact rectangles (not pills) — Severity Monitor + Live Symbol Heatmap */
+.level-pill{
+  display:inline-block;min-width:0;text-align:center;
+  border-radius:4px;padding:2px 7px;font-weight:700;font-size:10px;
+  letter-spacing:0.02em;line-height:1.35;vertical-align:middle;
+}
+.severity-summary-line .level-pill{padding:1px 5px;font-size:9px}
+.hold-note{display:block;margin-top:3px;font-size:10px;font-weight:600;color:var(--cl-muted)}
+.lvl-unknown{background:#fee2e2;color:#b91c1c}
+.lvl-basic{background:#eef2f7;color:#475569}
+.lvl-yellow{background:#fef3c7;color:#854d0e}
+.lvl-orange{background:#ffedd5;color:#9a3412}
+.lvl-red{background:#fee2e2;color:#b91c1c}
+.lvl-dark-red{background:#fca5a5;color:#7f1d1d}
+.lvl-dark-black{background:#1f2937;color:#fff}
+.lvl-brace{background:#0f172a;color:#fff}
+/* Dark mode level badges */
+[data-theme="dark"] .lvl-unknown{background:rgba(248,113,113,.18);color:#fca5a5}
+[data-theme="dark"] .lvl-basic{background:rgba(148,163,184,.16);color:#cbd5e1}
+[data-theme="dark"] .lvl-yellow{background:rgba(251,191,36,.18);color:#fbbf24}
+[data-theme="dark"] .lvl-orange{background:rgba(251,146,60,.2);color:#fdba74}
+[data-theme="dark"] .lvl-red{background:rgba(248,113,113,.2);color:#f87171}
+[data-theme="dark"] .lvl-dark-red{background:rgba(220,38,38,.35);color:#fecaca}
+[data-theme="dark"] .lvl-dark-black{background:#0f172a;color:#e2e8f0;border:1px solid rgba(148,163,184,.25)}
+[data-theme="dark"] .lvl-brace{background:#020617;color:#f8fafc;border:1px solid rgba(148,163,184,.35)}
+#signal-chart,#spread-chart{width:100%;display:block;background:linear-gradient(180deg,var(--cl-panel),var(--cl-canvas))}
+#signal-chart{height:420px}#spread-chart{height:280px}
+.detail-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:14px}.detail-metrics div{background:var(--cl-canvas);border-radius:10px;padding:10px}.detail-metrics span{display:block;font-size:11px;color:var(--cl-muted);font-weight:600}.detail-metrics strong{display:block;font-size:16px;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--cl-ink)}
+.live-events{margin-top:16px}.event-list{overflow:visible}
+.event-row{display:grid;grid-template-columns:90px 140px 1fr 170px;gap:12px;padding:11px 18px;border-bottom:1px solid var(--cl-line);font-size:12.5px;align-items:center;color:var(--cl-ink)}
+.event-row:hover{background:var(--cl-canvas)}.event-row strong{font-weight:700}.empty-event{padding:22px 18px;color:var(--cl-muted);font-size:13px;text-align:center}
+@media(max-width:1050px){.live-grid{grid-template-columns:1fr}.live-kpis{grid-template-columns:repeat(2,1fr)}.signal-summary{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.live-shell{padding:16px 12px}.live-topline{display:block}.live-status-box{margin-top:14px}.live-kpis,.signal-summary{grid-template-columns:1fr}.live-table-wrap{overflow-x:auto}.live-panel-head{display:block}.live-panel-head span{display:block;margin-top:4px}.event-row{grid-template-columns:80px 1fr}.event-row span:nth-child(3),.event-row span:nth-child(4){grid-column:2}}
+.btn-row-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+
+   </style>
+<script src="../../assets/mock-socket.js"></script>
+</head>
+<body data-theme="light">
+   <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid px-1">
+         <a class="navbar-brand" href="../../hsb/lpa.html">Remember Me.</a>
+         <button id="theme-toggle" class="theme-toggle" title="Toggle Dark Mode" aria-label="Toggle theme">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+         </button>
+         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+         </button>
+         <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mb-2 mb-lg-0 ms-auto">
+               <li class="nav-item"><a class="nav-link" href="../../index.html">About</a></li>
+               <li class="nav-item"><a class="nav-link active" href="../../hsb/tlm.html">TLM</a></li>
+               <li class="nav-item"><a class="nav-link" href="../../hsb/lpa.html">LPA</a></li>
+               <li class="nav-item"><a class="nav-link" href="../../hsb/ect.html">ECT</a></li>
+               <li class="nav-item"><a class="nav-link" href="../../hsb/drs.html">DRS</a></li>
+               <li class="nav-item"><a class="nav-link" href="../../hsb/ras.html">RAS</a></li>
+               <li class="nav-item"><a class="nav-link" href="../../hsb/isr.html">ISR</a></li>
+               <li class="nav-item"><a class="nav-link" href="../../hsb/pd.html">PD</a></li>
+            </ul>
+         </div>
+      </div>
+   </nav>
+
+   <div class="container-fluid px-2" id="dev-mode-content">
+      <h1 class="page-title">Traffic Light Dev-Mode</h1>
+      <div class="text-center mb-3">
+         <span id="current-datetime" class="datetime-badge"></span>
+         <div class="btn-row-actions">
+            <a href="../../hsb/tlm.html" class="neo-btn" style="text-decoration:none;">Back to TLM</a>
+         </div>
+      </div>
+<section id="candle-live-showcase" class="live-shell">
+  <div class="live-topline">
+    <div>
+      <div class="live-kicker">CandleTLv4 Live Read-Only Showcase</div>
+      <h1>Market conditions against R&amp;D parameters</h1>
+      <p>Live MT5 observation only. No Centroid call, no spread change, no email, and no WhatsApp action.</p>
+    </div>
+    <div class="live-status-box">
+      <span id="live-status-dot" class="status-dot"></span>
+      <strong id="live-status">Connecting</strong>
+      <span id="live-updated">Waiting for snapshot</span>
+    </div>
+  </div>
+  <div class="live-kpis">
+    <div><span>Mode</span><strong>READ ONLY</strong></div>
+    <div><span>Observed symbols</span><strong id="kpi-symbols">-</strong></div>
+    <div><span>Active CandleTL levels</span><strong id="kpi-active">-</strong></div>
+    <div><span>R&amp;D report baseline</span><strong id="kpi-baseline">-</strong></div>
+  </div>
+  <div class="signal-monitor-panel">
+    <div class="live-panel-head">
+      <h2 id="signal-title">Selected Asset: M1 / M5 / Daily / LPTL Severity</h2>
+      <span id="signal-subtitle">Live in-progress values normalized to each component's own CandleTL thresholds</span>
+    </div>
+    <svg id="signal-chart" viewBox="0 0 1500 420" role="img" aria-label="Selected asset M1 M5 Daily CandleTL severity chart"></svg>
+    <div id="signal-summary" class="signal-summary"></div>
+  </div>
+  <div class="asset-monitor-panel">
+    <div class="live-panel-head"><h2>All-Asset Rolling Spread Monitor</h2><span>Each chart shows the last 60 seconds, current Y area, and confirmed LP TL state</span></div>
+    <div id="asset-monitor-grid" class="asset-monitor-grid"></div>
+  </div>
+  <div class="severity-monitor-panel">
+    <div class="live-panel-head"><h2>All-Asset Severity Monitor</h2><span>M1 / M5 / Daily / LPTL severity for every asset at a glance</span></div>
+    <div id="severity-monitor-grid" class="asset-monitor-grid"></div>
+  </div>
+  <div class="live-grid">
+    <div class="live-table-panel">
+      <div class="live-panel-head"><h2>Live Symbol Heatmap</h2><span>Click a symbol to inspect its rolling spread</span></div>
+      <div class="live-table-wrap">
+        <table class="live-table">
+          <thead><tr><th>Symbol</th><th>Data</th><th>Spread</th><th>Spread Area</th><th>Confirmed LP TL</th><th>M1</th><th>M5</th><th>Daily</th><th>Effective</th></tr></thead>
+          <tbody id="live-symbol-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="live-detail-panel">
+      <div class="live-panel-head"><h2 id="detail-title">Rolling 60-Second Spread</h2><span id="detail-subtitle">Select a symbol</span></div>
+      <svg id="spread-chart" viewBox="0 0 760 280" role="img" aria-label="Rolling spread chart"></svg>
+      <div id="detail-metrics" class="detail-metrics"></div>
+    </div>
+  </div>
+  <div class="live-events">
+    <div class="live-panel-head"><h2>Live Level Change Timeline</h2><span>Events appear only when the observed effective level changes</span></div>
+    <div id="event-list" class="event-list"><div class="empty-event">No level change observed yet.</div></div>
+  </div>
+</section>
+   </div>
+
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+   <script>
+      function setTheme(theme) {
+         document.documentElement.setAttribute('data-theme', theme);
+         document.body.setAttribute('data-theme', theme);
+         localStorage.setItem('theme', theme);
+         const toggleBtn = document.getElementById('theme-toggle');
+         if (toggleBtn) {
+            if (theme === 'dark') {
+               toggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>';
+               toggleBtn.title = 'Switch to Light Mode';
+            } else {
+               toggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>';
+               toggleBtn.title = 'Switch to Dark Mode';
+            }
+         }
+         if (typeof window.__candletlRerender === 'function') window.__candletlRerender();
+      }
+      function toggleTheme() {
+         const current = document.documentElement.getAttribute('data-theme') || 'light';
+         setTheme(current === 'dark' ? 'light' : 'dark');
+      }
+      function initTheme() { setTheme(localStorage.getItem('theme') || 'light'); }
+      function updateCurrentDateTime() {
+         const el = document.getElementById('current-datetime');
+         if (el) el.textContent = new Date().toLocaleString();
+      }
+      document.addEventListener('DOMContentLoaded', () => {
+         initTheme();
+         document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+         updateCurrentDateTime();
+         setInterval(updateCurrentDateTime, 1000);
+         const toggler = document.querySelector('.navbar-toggler');
+         if (toggler) toggler.addEventListener('click', () => toggler.classList.toggle('rotated'));
+      });
+   </script>
+<script id="candle-live-script">
+(() => {
+  let selectedSymbol = null;
+  let latest = null;
+  // Shared M1/M5/Daily/LPTL colour+key list -- the big chart (renderSignalChart)
+  // and the small-multiples grid (miniSeverityChart) both read from this single
+  // source so "blue = M1" etc. stays consistent between the two views.
+  const SEVERITY_SERIES = [
+    {key:"m1_severity",name:"M1",color:"#2f6df6"},
+    {key:"m5_severity",name:"M5",color:"#12885f"},
+    {key:"daily_severity",name:"Daily",color:"#b7791f"},
+    {key:"lptl_severity",name:"LPTL",color:"#7c3aed"}
+  ];
+
+  function isDark() {
+    return (document.documentElement.getAttribute('data-theme') || document.body.getAttribute('data-theme')) === 'dark';
+  }
+  function chartTheme() {
+    if (isDark()) {
+      return {
+        bg: '#1a1d24',
+        miniBg: '#22262f',
+        grid: 'rgba(148,163,184,0.18)',
+        muted: '#94a3b8',
+        label: '#94a3b8',
+        thrMuted: 'rgba(148,163,184,0.25)',
+        bands: [
+          {name:"Basic",from:0,to:3,fill:"#252a34"},
+          {name:"Yellow",from:3,to:7,fill:"#3a3218"},
+          {name:"Orange",from:7,to:11,fill:"#3a2818"},
+          {name:"Red",from:11,to:15,fill:"#3a1f24"},
+          {name:"Dark Red",from:15,to:19,fill:"#4a1a1a"},
+          {name:"Dark Black",from:19,to:20,fill:"#111827"},
+          {name:"Brace Brace",from:20,to:21,fill:"#0f172a"}
+        ]
+      };
+    }
+    return {
+      bg: '#ffffff',
+      miniBg: '#fbfcfe',
+      grid: '#e4e9f0',
+      muted: '#66788c',
+      label: '#475569',
+      thrMuted: '#e2e8f0',
+      bands: [
+        {name:"Basic",from:0,to:3,fill:"#f8fafc"},
+        {name:"Yellow",from:3,to:7,fill:"#fefce8"},
+        {name:"Orange",from:7,to:11,fill:"#fff7ed"},
+        {name:"Red",from:11,to:15,fill:"#fef2f2"},
+        {name:"Dark Red",from:15,to:19,fill:"#fee2e2"},
+        {name:"Dark Black",from:19,to:20,fill:"#e5e7eb"},
+        {name:"Brace Brace",from:20,to:21,fill:"#0f172a"}
+      ]
+    };
+  }
+
+  const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fmt = (v, d=3) => v === null || v === undefined ? "-" : Number(v).toFixed(d);
+  const levelClass = (level) => {
+    const value = String(level ?? "");
+    // A missing level (failed read) is not the same as a real "BASIC"
+    // reading -- render it as unread, not as calm.
+    if (!value) return "lvl-unknown";
+    if (value === "BRACE_BRACE") return "lvl-brace";
+    if (value.startsWith("DARK_BLACK")) return "lvl-dark-black";
+    if (value.startsWith("DARK_RED")) return "lvl-dark-red";
+    if (value.startsWith("RED")) return "lvl-red";
+    if (value.startsWith("ORANGE")) return "lvl-orange";
+    if (value.startsWith("YELLOW")) return "lvl-yellow";
+    return "lvl-basic";
+  };
+  const label = (level) => (level === null || level === undefined || level === "") ? "Unavailable" : String(level).replaceAll("_", " ").replace(/\b\w/g, c => c.toUpperCase());
+  const pill = (level) => `<span class="level-pill ${levelClass(level)}">${esc(label(level))}</span>`;
+  const fmtDuration = (sec) => {
+    sec = Math.max(0, Math.round(Number(sec) || 0));
+    const m = Math.floor(sec / 60), s = sec % 60;
+    return m > 0 ? `${m}m ${s}s` : `${s}s`;
+  };
+  // Renders the Effective column: the HELD level's pill, plus -- only when a
+  // hold is actually masking a different live reading -- a small note with
+  // the remaining hold time and the live level underneath it. Missing/older
+  // `hold` payloads fall back to exactly today's plain pill.
+  function effectiveCell(item) {
+    const held = item.effective_level;
+    const live = item.live_level ?? held;
+    const hold = item.hold || null;
+    const secondsHeld = hold ? Math.max(Number(hold.m1_seconds_remaining) || 0, Number(hold.m5_seconds_remaining) || 0) : 0;
+    if (!hold || live === held || secondsHeld <= 0) return pill(held);
+    return `${pill(held)}<span class="hold-note">held ${esc(fmtDuration(secondsHeld))} &middot; live ${esc(label(live))}</span>`;
+  }
+  function renderSignalChart(item) {
+    const svg = document.getElementById("signal-chart");
+    const rows = item?.signal_history || [];
+    document.getElementById("signal-title").textContent = `${item?.symbol || "Selected Asset"} - M1 / M5 / Daily / LPTL Severity`;
+    document.getElementById("signal-subtitle").textContent = item?.error
+      ? item.error
+      : `Live in-progress lines use each component's own thresholds. Confirmed candle level: ${label(item?.candle_effective_level)} via ${(item?.candle_sources || []).join(", ")}.`;
+    if (!rows.length) {
+      const th0 = chartTheme();
+      svg.innerHTML = `<rect width="1500" height="420" fill="${th0.bg}"/><text x="750" y="210" text-anchor="middle" fill="${th0.muted}" font-size="14">Waiting for rolling signal history</text>`;
+      return;
+    }
+    const w=1500,h=420,l=112,r=150,t=30,b=52,plotW=w-l-r,plotH=h-t-b,maxSeverity=21;
+    const minEpoch=Math.min(...rows.map(x=>Number(x.epoch))), maxEpoch=Math.max(...rows.map(x=>Number(x.epoch)));
+    const x=e=>l+((e-minEpoch)/Math.max(maxEpoch-minEpoch,1))*plotW;
+    const y=v=>t+plotH-(Math.max(0,Math.min(Number(v)||0,maxSeverity))/maxSeverity)*plotH;
+    // Single axis: band NAME labels on the left are the only text labels for the
+    // severity scale (previously there was also a redundant set of numbered-tier
+    // labels on the right -- two parallel label systems for one axis). Light
+    // gridlines at each tier boundary are kept as a plain visual reference.
+    const th = chartTheme();
+    const bands = th.bands;
+    const bandSvg=bands.map(b=>`<rect x="${l}" y="${y(b.to)}" width="${plotW}" height="${Math.max(y(b.from)-y(b.to),1)}" fill="${b.fill}"/><text x="${l-10}" y="${(y(b.from)+y(b.to))/2+4}" text-anchor="end" fill="${th.label}" font-size="11">${b.name}</text>`).join("");
+    const gridLines=[3,7,11,15,19,20].map(val=>`<line x1="${l}" y1="${y(val)}" x2="${w-r}" y2="${y(val)}" stroke="${th.grid}" stroke-width="1"/>`).join("");
+    // Four solid, distinct colours (no dashing) so M1/M5/Daily/LPTL are told apart
+    // by colour alone. --cl-red is reserved elsewhere for danger/threshold
+    // breach, so it is deliberately not reused here for a routine data series.
+    const labelOffsets=[-18,-6,6,18];
+    const series=SEVERITY_SERIES.map((s,i)=>({...s,name:`${s.name} Live`,labelOffset:labelOffsets[i]}));
+    const seriesSvg=series.map(s=>{
+      const valid=rows.filter(row=>row[s.key]!==null&&row[s.key]!==undefined);
+      if(!valid.length) return "";
+      const points=valid.map(row=>`${x(Number(row.epoch)).toFixed(1)},${y(Number(row[s.key])).toFixed(1)}`).join(" ");
+      const last=valid.at(-1);
+      const pointY=y(Number(last[s.key])), labelY=pointY+s.labelOffset;
+      return `<polyline class="live-severity-line" points="${points}" fill="none" stroke="${s.color}" stroke-width="2.2"/><circle cx="${x(Number(last.epoch))}" cy="${pointY}" r="4" fill="${s.color}"/><line x1="${w-r}" y1="${pointY}" x2="${w-r+6}" y2="${labelY}" stroke="${s.color}" stroke-width="1"/><text x="${w-r+8}" y="${labelY+4}" fill="${s.color}" font-size="11" font-weight="700">${s.name}</text>`;
+    }).join("");
+    const startLabel=new Date(minEpoch*1000).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+    const endLabel=new Date(maxEpoch*1000).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+    svg.innerHTML=`<rect width="${w}" height="${h}" fill="${th.bg}"/>${bandSvg}${gridLines}
+      <line x1="${l}" y1="${t+plotH}" x2="${w-r}" y2="${t+plotH}" stroke="${th.grid}"/>
+      ${seriesSvg}
+      <text x="${l}" y="${h-18}" fill="${th.muted}" font-size="11">${esc(startLabel)}</text>
+      <text x="${w-r}" y="${h-18}" text-anchor="end" fill="${th.muted}" font-size="11">${esc(endLabel)}</text>
+      <text x="${l+plotW/2}" y="${h-18}" text-anchor="middle" fill="${th.muted}" font-size="11">Rolling history; old samples are discarded automatically</text>`;
+    document.getElementById("signal-summary").innerHTML=`
+      <div><span>Live leading component</span><strong>${esc(item.live_leader || "-")}</strong></div>
+      <div><span>M1 live in-progress</span><strong>${fmt(item.live_m1_range_pct,4)}%</strong></div>
+      <div><span>M5 live in-progress</span><strong>${fmt(item.live_m5_range_pct,4)}%</strong></div>
+      <div><span>Daily live move</span><strong>${fmt(item.daily_pct,4)}%</strong></div>
+      <div><span>Confirmed candle level</span><strong>${esc(label(item.candle_effective_level))}</strong></div>`;
+  }
+  function miniChart(item) {
+    const rows = item?.spread_series || [];
+    if (!rows.length) return `<svg class="mini-spread-chart" viewBox="0 0 240 82"><text x="120" y="44" text-anchor="middle" fill="#e4e9f0" font-size="10">No tick data</text></svg>`;
+    const w=240,h=82,l=4,r=4,t=5,b=5,plotW=w-l-r,plotH=h-t-b;
+    const thresholds = item.lptl_thresholds || [];
+    const maxY = Math.max(...rows.map(x => Number(x.spread)), ...thresholds.map(x => Number(x.y)), 1) * 1.12;
+    const minEpoch = Math.min(...rows.map(x => Number(x.epoch))), maxEpoch = Math.max(...rows.map(x => Number(x.epoch)));
+    const x = e => l + ((e-minEpoch) / Math.max(maxEpoch-minEpoch,1)) * plotW;
+    const y = v => t + plotH - (v/maxY)*plotH;
+    const points = rows.map(row => `${x(Number(row.epoch)).toFixed(1)},${y(Number(row.spread)).toFixed(1)}`).join(" ");
+    const th = chartTheme();
+    const lines = thresholds.map(thr => `<line x1="${l}" y1="${y(Number(thr.y))}" x2="${w-r}" y2="${y(Number(thr.y))}" stroke="${thr.level === item.spread_area_level ? "#d13b3b" : th.thrMuted}" stroke-width="${thr.level === item.spread_area_level ? 1.3 : .7}" stroke-dasharray="3 3"/>`).join("");
+    return `<svg class="mini-spread-chart" viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="${th.miniBg}"/>${lines}<polyline points="${points}" fill="none" stroke="#2f6df6" stroke-width="1.6"/><circle cx="${x(Number(rows.at(-1).epoch))}" cy="${y(Number(rows.at(-1).spread))}" r="2.5" fill="#2f6df6"/></svg>`;
+  }
+  function miniSeverityChart(item) {
+    const rows = item?.signal_history || [];
+    if (!rows.length) return `<svg class="mini-severity-chart" viewBox="0 0 240 100"><text x="120" y="52" text-anchor="middle" fill="#e4e9f0" font-size="10">No severity data</text></svg>`;
+    const w=240,h=100,l=4,r=4,t=5,b=5,plotW=w-l-r,plotH=h-t-b,maxSeverity=21;
+    const minEpoch = Math.min(...rows.map(x => Number(x.epoch))), maxEpoch = Math.max(...rows.map(x => Number(x.epoch)));
+    const x = e => l + ((e-minEpoch) / Math.max(maxEpoch-minEpoch,1)) * plotW;
+    const y = v => t + plotH - (Math.max(0,Math.min(Number(v)||0,maxSeverity))/maxSeverity) * plotH;
+    const lines = SEVERITY_SERIES.map(s => {
+      const valid = rows.filter(row => row[s.key] !== null && row[s.key] !== undefined);
+      if (!valid.length) return "";
+      const points = valid.map(row => `${x(Number(row.epoch)).toFixed(1)},${y(Number(row[s.key])).toFixed(1)}`).join(" ");
+      return `<polyline points="${points}" fill="none" stroke="${s.color}" stroke-width="1.4"/>`;
+    }).join("");
+    const th = chartTheme();
+    return `<svg class="mini-severity-chart" viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="${th.miniBg}"/>${lines}</svg>`;
+  }
+  // Shared click target for asset-monitor cards, severity-monitor cards, and
+  // table rows -- all three select the same symbol and refresh every view.
+  function selectSymbol(symbol) {
+    selectedSymbol = symbol;
+    renderAssetMonitor(latest.symbols);
+    renderSeverityMonitor(latest.symbols);
+    renderTable(latest.symbols);
+    renderSignalChart(latest.symbols.find(item => item.symbol === selectedSymbol));
+    renderDetail(latest.symbols.find(item => item.symbol === selectedSymbol));
+  }
+  function renderAssetMonitor(symbols) {
+    const grid = document.getElementById("asset-monitor-grid");
+    grid.innerHTML = symbols.map(item => `<div class="asset-card ${item.symbol === selectedSymbol ? "selected" : ""} ${item.data_status === "STALE" ? "stale" : ""}" data-symbol="${esc(item.symbol)}">
+      <div class="asset-card-head"><strong>${esc(item.symbol)}</strong><span class="data-badge ${item.error ? "err" : (item.data_status === "STALE" ? "stale" : "")}">${esc(item.data_status || "N/A")}</span></div>
+      ${miniChart(item)}
+      <div class="asset-card-sub"><span>Spread ${item.error ? "-" : esc(item.spread_points + " pts")}</span><span>Area ${esc(label(item.spread_area_level))}</span></div>
+      <div class="asset-card-sub"><span>Confirmed LP TL</span><span>${esc(label(item.lptl_level))}</span></div>
+      <div class="asset-card-sub"><span>X progress ${esc(item.lptl_count_above ?? "-")} / ${esc(item.lptl_x ?? "-")}</span><span>Y ${esc(item.lptl_y ?? "-")} pts</span></div>
+    </div>`).join("");
+    grid.querySelectorAll(".asset-card").forEach(card => card.addEventListener("click", () => selectSymbol(card.dataset.symbol)));
+  }
+  function renderSeverityMonitor(symbols) {
+    const grid = document.getElementById("severity-monitor-grid");
+    if (!grid) return;
+    grid.innerHTML = symbols.map(item => `<div class="asset-card ${item.symbol === selectedSymbol ? "selected" : ""} ${item.data_status === "STALE" ? "stale" : ""}" data-symbol="${esc(item.symbol)}">
+      <div class="asset-card-head"><strong>${esc(item.symbol)}</strong><span class="data-badge ${item.error ? "err" : (item.data_status === "STALE" ? "stale" : "")}">${esc(item.data_status || "N/A")}</span></div>
+      ${miniSeverityChart(item)}
+      <div class="severity-summary-line">M1 ${pill(item.m1_level)} M5 ${pill(item.m5_level)} D ${pill(item.daily_level)} LPTL ${pill(item.lptl_level)}</div>
+    </div>`).join("");
+    grid.querySelectorAll(".asset-card").forEach(card => card.addEventListener("click", () => selectSymbol(card.dataset.symbol)));
+  }
+  function renderTable(symbols) {
+    const body = document.getElementById("live-symbol-body");
+    body.innerHTML = symbols.map(item => {
+      const selected = item.symbol === selectedSymbol ? "selected" : "";
+      return `<tr class="${selected}" data-symbol="${esc(item.symbol)}">
+        <td><strong>${esc(item.symbol)}</strong></td>
+        <td><span class="data-badge ${item.error ? "err" : (item.data_status === "STALE" ? "stale" : "")}">${esc(item.data_status || "N/A")}</span></td>
+        <td>${item.error ? "N/A" : esc(item.spread_points + " pts")}</td>
+        <td>${pill(item.spread_area_level)}</td><td>${pill(item.lptl_level)}</td><td>${pill(item.m1_level)}</td><td>${pill(item.m5_level)}</td><td>${pill(item.daily_level)}</td><td>${effectiveCell(item)}</td>
+      </tr>`;
+    }).join("");
+    body.querySelectorAll("tr").forEach(row => row.addEventListener("click", () => selectSymbol(row.dataset.symbol)));
+  }
+  function renderChart(item) {
+    const svg = document.getElementById("spread-chart");
+    const rows = item?.spread_series || [];
+    const th = chartTheme();
+    if (!rows.length) {
+      svg.innerHTML = `<rect width="760" height="280" fill="${th.bg}"/><text x="380" y="140" text-anchor="middle" fill="${th.muted}" font-size="13">No rolling tick-spread data available</text>`;
+      return;
+    }
+    const w=760,h=280,l=48,r=18,t=22,b=36, plotW=w-l-r,plotH=h-t-b;
+    const yThreshold = Number(item.lptl_y || 0);
+    const maxY = Math.max(...rows.map(x => Number(x.spread)), yThreshold, 1) * 1.18;
+    const minEpoch = Math.min(...rows.map(x => Number(x.epoch))), maxEpoch = Math.max(...rows.map(x => Number(x.epoch)));
+    const x = e => l + ((e-minEpoch) / Math.max(maxEpoch-minEpoch,1)) * plotW;
+    const y = v => t + plotH - (v/maxY)*plotH;
+    const points = rows.map(row => `${x(Number(row.epoch)).toFixed(1)},${y(Number(row.spread)).toFixed(1)}`).join(" ");
+    const thresholdY = y(yThreshold);
+    svg.innerHTML = `
+      <rect width="${w}" height="${h}" fill="${th.bg}"/>
+      <line x1="${l}" y1="${t+plotH}" x2="${w-r}" y2="${t+plotH}" stroke="${th.grid}"/>
+      <line x1="${l}" y1="${t}" x2="${l}" y2="${t+plotH}" stroke="${th.grid}"/>
+      <line x1="${l}" y1="${thresholdY}" x2="${w-r}" y2="${thresholdY}" stroke="#d13b3b" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="${w-r}" y="${Math.max(thresholdY-6,12)}" text-anchor="end" fill="#a8302f" font-size="11">Y threshold ${esc(yThreshold)} pts</text>
+      <polyline points="${points}" fill="none" stroke="#2f6df6" stroke-width="2"/>
+      <circle cx="${x(Number(rows.at(-1).epoch))}" cy="${y(Number(rows.at(-1).spread))}" r="4" fill="#2f6df6"/>
+      <text x="${l}" y="${h-10}" fill="${th.muted}" font-size="11">60 seconds ago</text>
+      <text x="${w-r}" y="${h-10}" text-anchor="end" fill="${th.muted}" font-size="11">Now</text>
+      <text x="12" y="${t+6}" fill="${th.muted}" font-size="11">${Math.round(maxY)} pts</text>
+      <text x="20" y="${t+plotH}" fill="${th.muted}" font-size="11">0</text>`;
+  }
+  function renderDetail(item) {
+    if (!item) return;
+    document.getElementById("detail-title").textContent = `${item.symbol} - Rolling 60-Second Spread`;
+    const liveNote = item.live_level && item.live_level !== item.effective_level ? ` (live ${label(item.live_level)})` : "";
+    document.getElementById("detail-subtitle").textContent = item.error ? item.error : `${item.data_status || "N/A"} data - observed effective level: ${label(item.effective_level)}${liveNote} via ${(item.sources || []).join(", ")}`;
+    renderChart(item);
+    document.getElementById("detail-metrics").innerHTML = `
+      <div><span>Live spread</span><strong>${item.error ? "-" : esc(item.spread_points + " pts")}</strong></div>
+      <div><span>Current spread area</span><strong>${esc(label(item.spread_area_level))}</strong></div>
+      <div><span>Confirmed LP TL</span><strong>${esc(label(item.lptl_level))}</strong></div>
+      <div><span>LP TL counter</span><strong>${esc(item.lptl_count_above ?? "-")} / ${esc(item.lptl_x ?? "-")} ticks</strong></div>
+      <div><span>LP TL threshold</span><strong>${esc(item.lptl_y ?? "-")} pts</strong></div>
+      <div><span>Last closed M1 range</span><strong>${fmt(item.m1_range_pct,4)}%</strong></div>
+      <div><span>Last closed M5 range</span><strong>${fmt(item.m5_range_pct,4)}%</strong></div>
+      <div><span>Daily move</span><strong>${fmt(item.daily_pct,4)}%</strong></div>
+      <div><span>Historical LP TL rate</span><strong>${fmt(item.lptl_historical_rate_pct,4)}%</strong></div>
+      <div><span>R&amp;D parameter Z</span><strong>${esc(item.lptl_z ?? "-")} min</strong></div>
+      <div><span>Latest tick</span><strong>${item.tick_time ? new Date(item.tick_time).toLocaleTimeString() : "-"}</strong></div>
+      <div><span>Tick freshness</span><strong>${item.freshness_seconds === undefined ? "-" : esc(item.freshness_seconds + " sec")}</strong></div>`;
+  }
+  function renderEvents(events) {
+    const el = document.getElementById("event-list");
+    if (!events?.length) { el.innerHTML = `<div class="empty-event">No level change observed yet.</div>`; return; }
+    el.innerHTML = events.map(event => `<div class="event-row"><span>${esc(event.time)}</span><strong>${esc(event.symbol)}</strong><span>${esc(label(event.from))} -> ${esc(label(event.to))}</span><span>Source: ${esc((event.sources || []).join(", "))}</span></div>`).join("");
+  }
+  async function refresh() {
+    try {
+      const response = await fetch("/api/candletl/live", {cache:"no-store"});
+      latest = await response.json();
+      const ok = latest.status !== "error";
+      document.getElementById("live-status-dot").className = "status-dot " + (ok ? "ok" : "err");
+      document.getElementById("live-status").textContent = ok ? `${String(latest.status).toUpperCase()} snapshot` : "Collector error";
+      document.getElementById("live-updated").textContent = latest.generated_at ? `Updated ${new Date(latest.generated_at).toLocaleString()}` : (latest.error || "Waiting");
+      document.getElementById("kpi-symbols").textContent = `${latest.total_symbols ?? 0}`;
+      document.getElementById("kpi-active").textContent = `${latest.active_symbols ?? 0}`;
+      document.getElementById("kpi-baseline").textContent = latest.report_generated_at || "-";
+      if (!selectedSymbol && latest.symbols?.length) selectedSymbol = latest.symbols[0].symbol;
+      renderAssetMonitor(latest.symbols || []);
+      renderSeverityMonitor(latest.symbols || []);
+      renderTable(latest.symbols || []);
+      renderSignalChart((latest.symbols || []).find(item => item.symbol === selectedSymbol));
+      renderDetail((latest.symbols || []).find(item => item.symbol === selectedSymbol));
+      renderEvents(latest.events || []);
+    } catch (error) {
+      document.getElementById("live-status-dot").className = "status-dot err";
+      document.getElementById("live-status").textContent = "API unavailable";
+      document.getElementById("live-updated").textContent = String(error);
+    }
+  }
+  window.__candletlRerender = function () {
+    if (!latest) return;
+    renderAssetMonitor(latest.symbols || []);
+    renderSeverityMonitor(latest.symbols || []);
+    renderTable(latest.symbols || []);
+    renderSignalChart((latest.symbols || []).find(item => item.symbol === selectedSymbol));
+    renderDetail((latest.symbols || []).find(item => item.symbol === selectedSymbol));
+  };
+  refresh();
+  setInterval(refresh, 5000);
+})();
+</script>
+</body>
+</html>

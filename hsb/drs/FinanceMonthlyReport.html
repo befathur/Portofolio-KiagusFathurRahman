@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PrinceJF - FinanceMonthlyReport</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' fill='white'/%3E%3Cellipse cx='50' cy='50' rx='35' ry='10' fill='none' stroke='white' stroke-width='4'/%3E%3C/svg%3E">
+       
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+    <!-- xlsx-js-style supports cell borders (community SheetJS does not) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
+    
+   <style>
+      :root {
+         --bg: #e0e5ec; --bg-soft: #e8edf3; --text: #2d3748; --text-muted: #718096;
+         --accent: #4a6cf7; --accent-soft: rgba(74, 108, 247, 0.12);
+         --success: #10b981; --warning: #f59e0b; --info: #0ea5e9; --danger: #ef4444;
+         --shadow-out: 8px 8px 16px #a3b1c6, -8px -8px 16px #ffffff;
+         --shadow-out-sm: 4px 4px 10px #a3b1c6, -4px -4px 10px #ffffff;
+         --shadow-in: inset 5px 5px 10px #a3b1c6, inset -5px -5px 10px #ffffff;
+         --shadow-in-sm: inset 3px 3px 6px #a3b1c6, inset -3px -3px 6px #ffffff;
+         --radius: 18px; --radius-sm: 12px; --radius-pill: 999px;
+         --card-bg: #e0e5ec; --table-header: #d4dbe6; --border-soft: rgba(163, 177, 198, 0.35);
+         --navbar-bg: #e0e5ec;
+      }
+      [data-theme="dark"] {
+         --bg: #1a1d24; --bg-soft: #22262f; --text: #e2e8f0; --text-muted: #94a3b8;
+         --accent: #7c9cff; --accent-soft: rgba(124, 156, 255, 0.15);
+         --success: #34d399; --warning: #fbbf24; --info: #38bdf8; --danger: #f87171;
+         --shadow-out: 8px 8px 18px #0d0f14, -8px -8px 18px #2a2f3a;
+         --shadow-out-sm: 4px 4px 12px #0d0f14, -4px -4px 12px #2a2f3a;
+         --shadow-in: inset 5px 5px 12px #0d0f14, inset -5px -5px 12px #2a2f3a;
+         --shadow-in-sm: inset 3px 3px 7px #0d0f14, inset -3px -3px 7px #2a2f3a;
+         --card-bg: #1a1d24; --table-header: #252a34; --border-soft: rgba(148, 163, 184, 0.12);
+         --navbar-bg: #1a1d24;
+      }
+      *, *::before, *::after { box-sizing: border-box; }
+      body {
+         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+         background: var(--bg) !important; color: var(--text) !important;
+         padding: 16px !important; padding-top: 96px !important;
+         min-height: 100dvh; transition: background 0.45s ease, color 0.45s ease;
+         -webkit-font-smoothing: antialiased; letter-spacing: -0.01em;
+      }
+      .navbar {
+         position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+         width: min(94%, 1180px); background: var(--navbar-bg) !important;
+         box-shadow: var(--shadow-out); border: none !important; border-radius: var(--radius);
+         padding: 10px 16px; z-index: 1030; transition: box-shadow 0.4s ease, background 0.4s ease;
+      }
+      .navbar-brand { font-weight: 700; color: var(--accent) !important; font-size: 1.25rem; letter-spacing: -0.02em; padding: 6px 12px; border-radius: var(--radius-sm); }
+      .navbar-nav .nav-link { color: var(--text) !important; font-size: 0.9rem; font-weight: 500; padding: 8px 14px !important; margin: 2px 3px; border-radius: var(--radius-sm); transition: all 0.25s ease; }
+      .navbar-nav .nav-link:hover { color: var(--accent) !important; background: var(--accent-soft); box-shadow: var(--shadow-in-sm); }
+      .navbar-nav .nav-link.active { color: var(--accent) !important; font-weight: 600; background: var(--accent-soft); box-shadow: var(--shadow-in-sm); }
+      .theme-toggle {
+         width: 42px; height: 42px; border: none; background: var(--bg); color: var(--accent);
+         border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+         box-shadow: var(--shadow-out-sm); transition: all 0.3s ease; margin-left: auto; margin-right: 10px; flex-shrink: 0;
+      }
+      .theme-toggle:hover { box-shadow: var(--shadow-in-sm); transform: scale(1.05); }
+      .theme-toggle:active { box-shadow: var(--shadow-in); }
+      .theme-toggle svg { width: 20px; height: 20px; }
+      .navbar-toggler { border: none !important; padding: 8px; border-radius: 50%; box-shadow: var(--shadow-out-sm); background: var(--bg); transition: all 0.35s ease; }
+      .navbar-toggler:focus { box-shadow: var(--shadow-in-sm); }
+      .navbar-toggler.rotated { transform: rotate(90deg); }
+      .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(74,108,247,0.85)' stroke-width='2.2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); }
+      [data-theme="dark"] .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(124,156,255,0.9)' stroke-width='2.2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); }
+      @media (max-width: 991.98px) {
+         .navbar-collapse { background: var(--bg); border-radius: var(--radius-sm); margin-top: 12px; padding: 10px; box-shadow: var(--shadow-in-sm); }
+         .navbar-nav { margin-left: 0 !important; }
+         .navbar-nav .nav-link { padding: 12px 16px !important; }
+      }
+      h1, h2, h3, .page-title, .text-primary { font-weight: 700 !important; letter-spacing: -0.03em; color: var(--text) !important; }
+      h2.text-center, h2.mb-2, h2.mb-3 { font-size: clamp(1.35rem, 4vw, 1.85rem) !important; }
+      .badge.bg-secondary, #current-datetime {
+         display: inline-block !important; background: var(--bg) !important; color: var(--text-muted) !important;
+         font-size: 0.85rem !important; font-weight: 500 !important; padding: 8px 18px !important;
+         border-radius: 999px !important; box-shadow: var(--shadow-in-sm) !important; border: none !important;
+      }
+      .btn-outline-primary, #print-pdf, .btn.btn-outline-primary {
+         background: var(--bg) !important; color: var(--accent) !important; border: none !important;
+         font-weight: 600 !important; font-size: 0.875rem !important; padding: 10px 22px !important;
+         border-radius: 999px !important; box-shadow: var(--shadow-out-sm) !important; transition: all 0.25s ease !important;
+      }
+      .btn-outline-primary:hover, #print-pdf:hover { box-shadow: var(--shadow-in-sm) !important; color: var(--accent) !important; background: var(--bg) !important; }
+      .btn-sm, .copy-table-btn, .btn-light {
+         font-size: 0.75rem !important; padding: 5px 12px !important; border-radius: var(--radius-sm) !important;
+         font-weight: 600 !important; background: var(--bg) !important; color: var(--text) !important;
+         border: none !important; box-shadow: var(--shadow-out-sm) !important;
+      }
+      .btn-sm:hover, .copy-table-btn:hover { box-shadow: var(--shadow-in-sm) !important; color: var(--accent) !important; }
+      .card, .neo-card {
+         background: var(--card-bg) !important; border: none !important; border-radius: var(--radius) !important;
+         box-shadow: var(--shadow-out) !important; overflow: hidden; color: var(--text) !important;
+      }
+      .card-header, .neo-card-header {
+         background: transparent !important; color: var(--text) !important; font-weight: 600 !important;
+         font-size: 0.95rem !important; padding: 14px 18px !important; border-bottom: none !important;
+      }
+      .card-header.bg-primary, .card-header.bg-success, .card-header.bg-info, .card-header.bg-warning,
+      .card-header.bg-danger, .card-header.bg-dark, .card-header.bg-secondary {
+         background: transparent !important; color: var(--text) !important;
+      }
+      .card-header.text-white, .card-header.text-dark { color: var(--text) !important; }
+      .card-body { padding: 12px 16px 18px !important; }
+      .table {
+         background: transparent !important; color: var(--text) !important; margin-bottom: 0;
+         --bs-table-bg: transparent; --bs-table-color: var(--text);
+         --bs-table-border-color: var(--border-soft); --bs-table-hover-bg: var(--accent-soft);
+      }
+      .table th, .table td {
+         vertical-align: middle; font-size: 0.8rem !important; color: var(--text) !important;
+         border-color: var(--border-soft) !important; padding: 0.55rem 0.65rem !important;
+         background: transparent !important;
+      }
+      .table thead th {
+         background: var(--table-header) !important; font-weight: 600 !important; font-size: 0.72rem !important;
+         text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted) !important; border: none !important;
+      }
+      .table-responsive {
+         border-radius: var(--radius-sm) !important; box-shadow: var(--shadow-in-sm) !important;
+         padding: 4px; background: var(--bg) !important;
+      }
+      .positive { color: var(--success) !important; font-weight: 600 !important; }
+      .negative { color: var(--danger) !important; font-weight: 600 !important; }
+      .grand-total-row { background: var(--accent-soft) !important; font-weight: 700 !important; }
+      .suffix-btn, .filter-btn, .btn-group .btn {
+         background: var(--bg) !important; color: var(--text) !important; border: none !important;
+         font-weight: 600 !important; font-size: 0.85rem !important; padding: 10px 18px !important;
+         border-radius: 999px !important; box-shadow: var(--shadow-out-sm) !important; transition: all 0.25s ease !important;
+      }
+      .suffix-btn:hover, .filter-btn:hover, .btn-group .btn:hover { box-shadow: var(--shadow-in-sm) !important; color: var(--accent) !important; }
+      .suffix-btn.active, .filter-btn.active, .btn-group .btn.active {
+         box-shadow: var(--shadow-in) !important; color: var(--accent) !important; background: var(--bg) !important;
+      }
+      
+      .form-control, .form-select, input, select, textarea {
+         background: var(--bg) !important;
+         color: var(--text) !important;
+         border: none !important;
+         border-radius: var(--radius-sm) !important;
+         box-shadow: var(--shadow-in-sm) !important;
+         padding: 10px 14px !important;
+         -webkit-text-fill-color: var(--text) !important;
+         caret-color: var(--text) !important;
+      }
+      .form-control:focus, .form-select:focus { box-shadow: var(--shadow-in) !important; outline: none !important; }
+
+      /* Light mode placeholders */
+      .form-control::placeholder,
+      input.form-control::placeholder,
+      input::placeholder,
+      textarea::placeholder {
+         color: #6c757d !important;
+         opacity: 1 !important;
+         -webkit-text-fill-color: #6c757d !important;
+      }
+      .form-control::-webkit-input-placeholder,
+      input::-webkit-input-placeholder {
+         color: #6c757d !important;
+         -webkit-text-fill-color: #6c757d !important;
+      }
+      .form-control::-moz-placeholder,
+      input::-moz-placeholder {
+         color: #6c757d !important;
+         opacity: 1 !important;
+      }
+
+      /* Dark mode – force white placeholders */
+      html[data-theme="dark"] .form-control::placeholder,
+      html[data-theme="dark"] input.form-control::placeholder,
+      html[data-theme="dark"] input::placeholder,
+      html[data-theme="dark"] textarea::placeholder,
+      body[data-theme="dark"] .form-control::placeholder,
+      body[data-theme="dark"] input.form-control::placeholder,
+      body[data-theme="dark"] input::placeholder,
+      body[data-theme="dark"] textarea::placeholder {
+         color: #ffffff !important;
+         opacity: 1 !important;
+         -webkit-text-fill-color: #ffffff !important;
+      }
+      html[data-theme="dark"] .form-control::-webkit-input-placeholder,
+      html[data-theme="dark"] input::-webkit-input-placeholder,
+      body[data-theme="dark"] .form-control::-webkit-input-placeholder,
+      body[data-theme="dark"] input::-webkit-input-placeholder {
+         color: #ffffff !important;
+         -webkit-text-fill-color: #ffffff !important;
+      }
+      html[data-theme="dark"] .form-control::-moz-placeholder,
+      html[data-theme="dark"] input::-moz-placeholder,
+      body[data-theme="dark"] .form-control::-moz-placeholder,
+      body[data-theme="dark"] input::-moz-placeholder {
+         color: #ffffff !important;
+         opacity: 1 !important;
+      }
+
+      html[data-theme="dark"], body[data-theme="dark"] {
+         --bs-body-color: #e2e8f0;
+         --bs-body-bg: #1a1d24;
+         --bs-secondary-color: rgba(255, 255, 255, 0.85);
+         --bs-tertiary-color: rgba(255, 255, 255, 0.65);
+         color-scheme: dark;
+      }
+
+      .form-select {
+         color: var(--text) !important;
+      }
+      .form-select option {
+         background: var(--bg);
+         color: var(--text);
+      }
+
+
+.report-link, a.report-link {
+         display: block; background: var(--bg); color: var(--text) !important; text-decoration: none !important;
+         padding: 16px 20px; margin-bottom: 12px; border-radius: var(--radius-sm);
+         box-shadow: var(--shadow-out-sm); transition: all 0.25s ease;
+      }
+      .report-link:hover { box-shadow: var(--shadow-in-sm); color: var(--accent) !important; transform: translateY(-1px); }
+      .chart-container { position: relative; margin: 8px auto; }
+      @media (max-width: 575.98px) {
+         body { padding: 12px !important; padding-top: 88px !important; }
+         .navbar { top: 10px !important; width: 96% !important; padding: 8px 12px !important; }
+         .table th, .table td { font-size: 0.75rem !important; padding: 0.45rem 0.5rem !important; }
+      }
+      @media print {
+         .navbar, .theme-toggle, #print-pdf, .copy-table-btn, .suffix-btn { display: none !important; }
+         body { padding-top: 20px !important; background: var(--bg) !important; }
+      }
+   
+      .page-title-row {
+         margin-bottom: 1.25rem !important;
+         padding-bottom: 0.25rem;
+      }
+      .page-title-row h5 {
+         /* THIS */
+         font-weight: 400 !important;
+         /* UNTIL THIS */
+         letter-spacing: -0.02em;
+         font-size: clamp(1.05rem, 2.5vw, 1.25rem) !important;
+         /* THIS */
+         color: var(--text) !important;
+      }
+      .page-title-row h5 strong {
+         font-weight: 700 !important;
+         color: var(--accent, #4a6cf7) !important;
+      }
+      .page-title-row h5 .title-desc {
+         font-weight: 400 !important;
+         color: var(--text-muted, #6c757d) !important;
+         /* UNTIL THIS */
+      }
+      .page-title-row .btn-outline-secondary,
+      .page-title-row a.btn {
+         background: var(--bg) !important;
+         color: var(--text) !important;
+         border: none !important;
+         font-weight: 600 !important;
+         font-size: 0.8rem !important;
+         padding: 8px 16px !important;
+         border-radius: 999px !important;
+         box-shadow: var(--shadow-out-sm) !important;
+         transition: all 0.25s ease !important;
+         text-decoration: none !important;
+      }
+      .page-title-row .btn-outline-secondary:hover,
+      .page-title-row a.btn:hover {
+         box-shadow: var(--shadow-in-sm) !important;
+         color: var(--accent) !important;
+      }
+
+   
+      /* Flatpickr calendar – prevent header month/year crop */
+      .flatpickr-calendar {
+         width: 320px !important;
+         max-width: 95vw !important;
+         padding: 8px !important;
+         box-shadow: var(--shadow-out) !important;
+         background: var(--card-bg, #fff) !important;
+         border: none !important;
+         overflow: visible !important;
+      }
+      .flatpickr-months {
+         display: flex !important;
+         align-items: center !important;
+         justify-content: space-between !important;
+         padding: 4px 4px 8px !important;
+         height: auto !important;
+         min-height: 40px !important;
+         overflow: visible !important;
+      }
+      .flatpickr-months .flatpickr-month {
+         height: auto !important;
+         min-height: 36px !important;
+         overflow: visible !important;
+         flex: 1 1 auto !important;
+      }
+      .flatpickr-current-month {
+         display: flex !important;
+         align-items: center !important;
+         justify-content: center !important;
+         width: 100% !important;
+         left: 0 !important;
+         padding: 0 8px !important;
+         height: auto !important;
+         min-height: 34px !important;
+         font-size: 1rem !important;
+         font-weight: 600 !important;
+         overflow: visible !important;
+         position: relative !important;
+         gap: 6px;
+      }
+      .flatpickr-current-month .flatpickr-monthDropdown-months,
+      .flatpickr-monthDropdown-months {
+         max-width: none !important;
+         width: auto !important;
+         min-width: 110px !important;
+         font-size: 0.95rem !important;
+         font-weight: 600 !important;
+         padding: 4px 8px !important;
+         appearance: auto !important;
+         -webkit-appearance: menulist !important;
+         background: transparent !important;
+         border-radius: 8px !important;
+         overflow: visible !important;
+         text-overflow: clip !important;
+         white-space: nowrap !important;
+      }
+      .flatpickr-current-month input.cur-year,
+      .numInputWrapper {
+         width: auto !important;
+         min-width: 72px !important;
+         max-width: 90px !important;
+         overflow: visible !important;
+      }
+      .flatpickr-current-month input.cur-year {
+         font-size: 0.95rem !important;
+         font-weight: 600 !important;
+         padding: 2px 4px !important;
+         width: 4.2ch !important;
+         max-width: none !important;
+      }
+      .numInputWrapper span {
+         border: none !important;
+      }
+      .flatpickr-prev-month,
+      .flatpickr-next-month {
+         padding: 8px !important;
+         height: 34px !important;
+         width: 34px !important;
+         display: flex !important;
+         align-items: center !important;
+         justify-content: center !important;
+         position: relative !important;
+         top: 0 !important;
+         fill: var(--text, #333) !important;
+      }
+      .flatpickr-prev-month svg,
+      .flatpickr-next-month svg {
+         width: 14px !important;
+         height: 14px !important;
+      }
+      /* monthSelect plugin year header */
+      .flatpickr-monthSelect-months {
+         margin-top: 8px !important;
+      }
+      .flatpickr-monthSelect-month {
+         height: 40px !important;
+         line-height: 40px !important;
+         border-radius: 8px !important;
+      }
+      /* Dark mode flatpickr */
+      [data-theme="dark"] .flatpickr-calendar {
+         background: #1a1d24 !important;
+         color: #e2e8f0 !important;
+         box-shadow: 8px 8px 18px #0d0f14, -8px -8px 18px #2a2f3a !important;
+      }
+      [data-theme="dark"] .flatpickr-months .flatpickr-month,
+      [data-theme="dark"] .flatpickr-current-month,
+      [data-theme="dark"] .flatpickr-current-month input.cur-year,
+      [data-theme="dark"] .flatpickr-monthDropdown-months {
+         color: #e2e8f0 !important;
+         fill: #e2e8f0 !important;
+      }
+      [data-theme="dark"] .flatpickr-prev-month,
+      [data-theme="dark"] .flatpickr-next-month {
+         fill: #e2e8f0 !important;
+         color: #e2e8f0 !important;
+      }
+      [data-theme="dark"] .flatpickr-day {
+         color: #e2e8f0 !important;
+      }
+      [data-theme="dark"] .flatpickr-day.flatpickr-disabled,
+      [data-theme="dark"] .flatpickr-day.prevMonthDay,
+      [data-theme="dark"] .flatpickr-day.nextMonthDay {
+         color: #64748b !important;
+      }
+      [data-theme="dark"] .flatpickr-day.selected,
+      [data-theme="dark"] .flatpickr-day.selected:hover {
+         background: #4a6cf7 !important;
+         border-color: #4a6cf7 !important;
+         color: #fff !important;
+      }
+      [data-theme="dark"] .flatpickr-monthSelect-month {
+         color: #e2e8f0 !important;
+      }
+      [data-theme="dark"] .flatpickr-monthSelect-month.selected {
+         background: #4a6cf7 !important;
+         color: #fff !important;
+      }
+
+   </style>
+<script src="../../assets/mock-socket.js"></script>
+</head>
+<body data-theme="light">
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../../hsb/lpa.html">Remember Me.</a>
+            <button id="theme-toggle" class="theme-toggle" title="Toggle Dark Mode"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg></button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mb-2 mb-lg-0 ms-auto">
+               <li class="nav-item"><a class="nav-link" href="../../index.html">About</a></li>
+               <li class="nav-item"><a class="nav-link" href="../../hsb/tlm.html">TLM</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/lpa.html">LPA</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/ect.html">ECT</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="../../hsb/drs.html">DRS</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/ras.html">RAS</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/isr.html">ISR</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../hsb/pd.html">PD</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="container-fluid mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-11">
+                <div class="d-flex justify-content-between align-items-center page-title-row mb-3">
+                    <!-- THIS -->
+                    <h5 class="mb-0"><strong>Finance Monthly Report</strong> <span class="title-desc"> | Gathered from IMTDaily-Deals-User</span></h5>
+                    <!-- UNTIL THIS -->
+                    <a href="../../hsb/drs.html" class="btn btn-outline-secondary btn-sm">← Back to DRS</a>
+                </div>
+                <div class="card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 section-header">One Click System</h5>
+                        <button id="export-excel" class="btn btn-light btn-sm" onclick="exportExcel()">Export Excel</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end justify-content-center mb-3">
+                            <div class="col-auto">
+                                <label class="form-label mb-1">Whitelabel</label>
+                                <select id="whitelabel" class="form-select form-select-lg">
+                                    <option value="HSB">HSB (Direct/IB)</option>
+                                    <option value="GLR">GLR (Glory)</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label mb-1">Date</label>
+                                <input type="text" id="date-input" class="form-control form-control-lg" placeholder="Select date" readonly>
+                            </div>
+                            
+                            <div class="col-auto">
+                                <button class="btn btn-primary btn-lg px-4" onclick="runReport()">Start</button>
+                                <button class="btn btn-outline-secondary btn-lg px-4" onclick="clearAll()">CLEAR</button>
+                            </div>
+                        </div>
+                        <p class="info-yellow small text-center mb-0">AdditionalInfo: <code>Whitelabel_DD-MM-YYYY</code></p>
+                        <div id="loading" class="text-center py-5 d-none"><div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem"></div><p>Running Finance Monthly Report...</p></div>
+                        <div id="error-box" class="alert alert-danger d-none mt-3" style="white-space:pre-wrap"></div>
+                        <div id="result-container" class="d-none mt-4"><div id="reports-content"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script>
+
+    const socket = io();
+    const REPORT_TYPE = 'FinanceMonthlyReport';
+    let fp = null;
+    let lastReportData = null;
+    let hsbView = 'IB'; // HSB only: 'IB' | 'Direct'
+
+    function fmt(n) {
+        if (n == null || n === '') return '-';
+        const v = Number(n);
+        return isNaN(v) ? String(n) : v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function numClass(n) {
+        const v = Number(n);
+        if (n == null || n === '' || isNaN(v)) return '';
+        return v > 0 ? 'positive' : (v < 0 ? 'negative' : '');
+    }
+    function cell(v) {
+        return `<td class="text-end ${numClass(v)}">${fmt(v)}</td>`;
+    }
+    // Merged row: same value spans Daily+Monthly+Yearly (3 cols)
+    function cellMerged3(v) {
+        return `<td class="text-end ${numClass(v)}" colspan="3">${fmt(v)}</td>`;
+    }
+    // Merged row: same value spans Daily+Monthly (2 cols)
+    function cellMerged2(v) {
+        return `<td class="text-end ${numClass(v)}" colspan="2">${fmt(v)}</td>`;
+    }
+
+    function runReport() {
+        const wl = document.getElementById('whitelabel').value;
+        let dateVal = (document.getElementById('date-input') && document.getElementById('date-input').value.trim()) || '15-09-2025';
+        let parts = dateVal.split('-');
+        if (parts.length !== 3) { dateVal = '15-09-2025'; parts = dateVal.split('-'); }
+        const d = +parts[0], mo = +parts[1], y = +parts[2];
+        const dt = new Date(y, mo - 1, d);
+        if (dt.getDay() === 0 || dt.getDay() === 6) return alert('Weekends (Sat/Sun) are not allowed');
+        const additionalInfo = `${wl}_${dateVal}`;
+
+        document.getElementById('loading').classList.remove('d-none');
+        document.getElementById('result-container').classList.add('d-none');
+        document.getElementById('error-box').classList.add('d-none');
+        lastReportData = null;
+        hsbView = 'IB';
+        socket.emit('run-report', { reportType: REPORT_TYPE, additionalInfo });
+    }
+
+    function clearAll() {
+        if (fp) fp.clear();
+        document.getElementById('whitelabel').value = 'HSB';
+        document.getElementById('result-container').classList.add('d-none');
+        document.getElementById('loading').classList.add('d-none');
+        document.getElementById('error-box').classList.add('d-none');
+        document.getElementById('reports-content').innerHTML = '';
+        lastReportData = null;
+        hsbView = 'IB';
+    }
+
+    function setHsbView(view) {
+        if (view !== 'IB' && view !== 'Direct') return;
+        hsbView = view;
+        if (lastReportData) render(lastReportData);
+    }
+
+    function periodKeys(isGlr) {
+        if (isGlr) return { daily: 'DailyGLR', monthly: 'MonthlyGLR', yearly: 'YearlyGLR', label: 'GLR' };
+        if (hsbView === 'Direct') return { daily: 'DailyDirect', monthly: 'MonthlyDirect', yearly: 'YearlyDirect', label: 'Direct' };
+        return { daily: 'DailyIB', monthly: 'MonthlyIB', yearly: 'YearlyIB', label: 'IB' };
+    }
+
+    function pickMetrics(metricsObj, keys) {
+        return {
+            D: (metricsObj && metricsObj[keys.daily]) || {},
+            M: (metricsObj && metricsObj[keys.monthly]) || {},
+            Y: (metricsObj && metricsObj[keys.yearly]) || {}
+        };
+    }
+
+    function render(data) {
+        lastReportData = data;
+        const isGlr = !!(data.IsGLR === true || data.IsGLR === 'true' || data.IsGLR === 1);
+        const keys = periodKeys(isGlr);
+        const viewLabel = keys.label;
+
+        // ClientTrade from C++: array of { Rate, Metrics: { DailyIB: {...}, ... } }
+        const clientTradeBlocks = Array.isArray(data.ClientTrade) ? data.ClientTrade : [];
+        // BalanceReport overall (not by rate)
+        const balanceMetrics = data.BalanceReport || {};
+        const bal = pickMetrics(balanceMetrics, keys);
+
+        // ---- Account Tracer (top) ----
+        const tracer = data.AccountTracer || [];
+        const tracerHtml = tracer.map((t, i) =>
+            `<tr>
+                <td>${i + 1}</td>
+                <td>${t.Date || '-'}</td>
+                <td>${t.Login || '-'}</td>
+                <td>${t.PrevTempRate || '-'} → ${t.NewTempRate || '-'}</td>
+                <td>${t.PrevTempBusinessType || '-'} → ${t.NewTempBusinessType || '-'}</td>
+            </tr>`
+        ).join('');
+
+        let html = '';
+
+        if (!isGlr) {
+            html += `
+            <div class="d-flex justify-content-center gap-2 mb-3">
+                <button type="button" class="btn filter-btn ${hsbView === 'IB' ? 'active' : ''}" onclick="setHsbView('IB')">IB</button>
+                <button type="button" class="btn filter-btn ${hsbView === 'Direct' ? 'active' : ''}" onclick="setHsbView('Direct')">Direct</button>
+            </div>
+            <p class="text-center text-muted small mb-3">Viewing: <strong>${viewLabel}</strong></p>`;
+        }
+
+        html += `
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white section-header">Account Tracer (Total changes: ${tracer.length})</div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-sm mb-0">
+                    <thead><tr><th>#</th><th>Date</th><th>Login</th><th>Rate</th><th>Business Type</th></tr></thead>
+                    <tbody>${tracerHtml || '<tr><td colspan="5" class="text-center text-muted">No changes</td></tr>'}</tbody>
+                </table>
+            </div>
+        </div>`;
+
+        // ---- ClientTrade: one table per rate (12K / 14K / 10K / Float) ----
+        const ctMetricDefs = [
+            ['NetProfit', false],
+            ['RealizedPL', false],
+            ['BalanceAdjustment', false],
+            ['AdjustTransferPos', false, 'AdjustTransferPosition'],
+            ['Commission', false],
+            ['Lot', false],
+            ['FloatingPL', true]
+        ];
+        const rateOrder = ['12K', '14K', '10K', 'Float'];
+        const byRate = {};
+        clientTradeBlocks.forEach(b => { if (b && b.Rate) byRate[b.Rate] = b; });
+
+        rateOrder.forEach(rateName => {
+            const block = byRate[rateName] || { Rate: rateName, Metrics: {} };
+            const { D, M, Y } = pickMetrics(block.Metrics || {}, keys);
+            const rows = ctMetricDefs.map(([key, merged, label]) => {
+                const name = label || key;
+                if (merged) return `<tr><td><strong>${name}</strong></td>${cellMerged3(D[key])}</tr>`;
+                return `<tr><td><strong>${name}</strong></td>${cell(D[key])}${cell(M[key])}${cell(Y[key])}</tr>`;
+            }).join('');
+            html += `
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white section-header">ClientTrade [${rateName}] (${viewLabel})</div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-bordered table-sm mb-0">
+                        <thead><tr>
+                            <th>Metric</th>
+                            <th class="text-end">Daily</th>
+                            <th class="text-end">Monthly</th>
+                            <th class="text-end">Yearly</th>
+                        </tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        });
+
+        // ---- BalanceReport (overall, not by rate) ----
+        const balanceRows = [
+            ['ClientAccountBalance', true],
+            ['NetDeposit', false],
+            ['Deposit', false],
+            ['Withdrawal', false],
+            ['NewDepositAmount', false],
+            ['NewFundedAccount', false],
+            ['AccountTraded', false]
+        ].map(([key, merged]) => {
+            if (merged) return `<tr><td><strong>${key}</strong></td>${cellMerged3(bal.D[key])}</tr>`;
+            return `<tr><td><strong>${key}</strong></td>${cell(bal.D[key])}${cell(bal.M[key])}${cell(bal.Y[key])}</tr>`;
+        }).join('');
+
+        html += `
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white section-header">BalanceReport (${viewLabel})</div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-sm mb-0">
+                    <thead><tr>
+                        <th>Metric</th>
+                        <th class="text-end">Daily</th>
+                        <th class="text-end">Monthly</th>
+                        <th class="text-end">Yearly</th>
+                    </tr></thead>
+                    <tbody>${balanceRows}</tbody>
+                </table>
+            </div>
+        </div>`;
+
+        // ---- Top 10 (Login / Volume / Amount only) ----
+        function top10List(section) {
+            if (!section) return [];
+            if (isGlr) return Array.isArray(section) ? section : [];
+            // HSB: section is { IB: [], Direct: [] }
+            if (hsbView === 'Direct') return section.Direct || [];
+            return section.IB || [];
+        }
+
+        function renderTop10(title, section) {
+            const list = top10List(section);
+            const body = list.map(r =>
+                `<tr>
+                    <td>${r.Login || '-'}</td>
+                    <td class="text-end">${fmt(r.Volume)}</td>
+                    <td class="text-end ${numClass(r.Amount)}">${fmt(r.Amount)}</td>
+                </tr>`
+            ).join('');
+            return `
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white section-header">${title} (${viewLabel})</div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-bordered table-sm mb-0">
+                        <thead><tr>
+                            <th>Login</th>
+                            <th class="text-end">Volume</th>
+                            <th class="text-end">Amount</th>
+                        </tr></thead>
+                        <tbody>${body || '<tr><td colspan="3" class="text-center text-muted">No data</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        }
+
+        html += renderTop10('Top 10 Winner (Daily)', data.Top10Winner);
+        html += renderTop10('Top 10 Loser (Daily)', data.Top10Loser);
+        html += renderTop10('Top 10 Volume (Daily)', data.Top10Volume);
+        html += renderTop10('Top 10 Deposit (Daily)', data.Top10Deposit);
+        html += renderTop10('Top 10 Withdrawal (Daily)', data.Top10Withdrawal);
+
+        // ---- Detailed Each Symbol ----
+        // Daily/Monthly from selected BT; FloatingPL & FloatingInterest merged (Daily value)
+        const detailList = Array.isArray(data.DetailedEachSymbol) ? data.DetailedEachSymbol : [];
+        const detailMetrics = [
+            'NetProfit', 'RealizedPL', 'RealizedInterest', 'Commission', 'Lot',
+            'Lot[XAUUSD]', 'Lot[XAGUSD]', 'FloatingPL', 'FloatingInterest'
+        ];
+        const mergedDetail = { FloatingPL: true, FloatingInterest: true };
+
+        function detailVal(row, which) {
+            if (isGlr) {
+                return which === 'daily' ? row.DailyGlory : row.MonthlyGlory;
+            }
+            if (hsbView === 'Direct') {
+                return which === 'daily' ? row.DailyDirect : row.MonthlyDirect;
+            }
+            return which === 'daily' ? row.DailyIB : row.MonthlyIB;
+        }
+
+        let detailBody = '';
+        if (!detailList.length) {
+            detailBody = '<tr><td colspan="4" class="text-center text-muted">No data</td></tr>';
+        } else {
+            // Group by category preserving order
+            const cats = [];
+            const byCat = {};
+            detailList.forEach(r => {
+                const c = r.Category || '';
+                if (!byCat[c]) { byCat[c] = {}; cats.push(c); }
+                byCat[c][r.Metric] = r;
+            });
+            cats.forEach(cat => {
+                detailMetrics.forEach(metric => {
+                    const r = byCat[cat][metric];
+                    if (!r) return;
+                    if (mergedDetail[metric]) {
+                        const v = detailVal(r, 'daily');
+                        detailBody += `<tr>
+                            <td>${cat}</td>
+                            <td><strong>${metric}</strong></td>
+                            ${cellMerged2(v)}
+                        </tr>`;
+                    } else {
+                        detailBody += `<tr>
+                            <td>${cat}</td>
+                            <td><strong>${metric}</strong></td>
+                            ${cell(detailVal(r, 'daily'))}
+                            ${cell(detailVal(r, 'monthly'))}
+                        </tr>`;
+                    }
+                });
+            });
+            if (!detailBody) {
+                detailBody = '<tr><td colspan="4" class="text-center text-muted">No data</td></tr>';
+            }
+        }
+
+        html += `
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark section-header">Detailed Each Symbol (${viewLabel})</div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-sm mb-0">
+                    <thead><tr>
+                        <th>Category</th>
+                        <th>Metric</th>
+                        <th class="text-end">Daily</th>
+                        <th class="text-end">Monthly</th>
+                    </tr></thead>
+                    <tbody>${detailBody}</tbody>
+                </table>
+            </div>
+        </div>`;
+
+        document.getElementById('reports-content').innerHTML = html;
+        document.getElementById('result-container').classList.remove('d-none');
+    }
+
+    // Thin border style for Excel cells (requires xlsx-js-style)
+    const XL_BORDER = {
+        top: { style: 'thin', color: { rgb: '000000' } },
+        bottom: { style: 'thin', color: { rgb: '000000' } },
+        left: { style: 'thin', color: { rgb: '000000' } },
+        right: { style: 'thin', color: { rgb: '000000' } }
+    };
+    const XL_HEADER_STYLE = {
+        font: { bold: true },
+        border: XL_BORDER,
+        alignment: { horizontal: 'center', vertical: 'center' }
+    };
+    const XL_TITLE_STYLE = {
+        font: { bold: true, sz: 12 },
+        border: XL_BORDER,
+        alignment: { horizontal: 'center', vertical: 'center' }
+    };
+    const XL_CELL_STYLE = {
+        border: XL_BORDER,
+        alignment: { vertical: 'center' }
+    };
+    const XL_NUM_POS = {
+        border: XL_BORDER,
+        alignment: { horizontal: 'right', vertical: 'center' },
+        numFmt: '#,##0.00'
+    };
+    const XL_NUM_NEG = {
+        border: XL_BORDER,
+        alignment: { horizontal: 'right', vertical: 'center' },
+        numFmt: '#,##0.00;(#,##0.00)',
+        font: { color: { rgb: 'FF0000' } }
+    };
+    const XL_LOGIN = {
+        border: XL_BORDER,
+        alignment: { horizontal: 'right', vertical: 'center' },
+        numFmt: '0'
+    };
+    const XL_YELLOW = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: 'FFFF00' } },
+        border: XL_BORDER,
+        alignment: { horizontal: 'center', vertical: 'center' }
+    };
+    const XL_ORANGE = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: 'F4B183' } },
+        border: XL_BORDER,
+        alignment: { horizontal: 'center', vertical: 'center' }
+    };
+    const XL_BLUE = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: '5B9BD5' } },
+        border: XL_BORDER,
+        alignment: { horizontal: 'center', vertical: 'center' }
+    };
+    const XL_LIGHT_BLUE = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: 'BDD7EE' } },
+        border: XL_BORDER,
+        alignment: { horizontal: 'center', vertical: 'center' }
+    };
+    const XL_CAT_YELLOW = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: 'FFE699' } },
+        border: XL_BORDER,
+        alignment: { horizontal: 'center', vertical: 'center' }
+    };
+
+    function applySheetBorders(ws) {
+        if (!ws) return;
+        if (ws['!merges'] && ws['!merges'].length) {
+            ws['!merges'].forEach(m => {
+                for (let R = m.s.r; R <= m.e.r; R++) {
+                    for (let C = m.s.c; C <= m.e.c; C++) {
+                        const addr = XLSX.utils.encode_cell({ r: R, c: C });
+                        if (!ws[addr]) ws[addr] = { t: 's', v: '' };
+                        const cell = ws[addr];
+                        if (!cell.s) cell.s = { border: XL_BORDER };
+                        else cell.s = Object.assign({}, cell.s, { border: XL_BORDER });
+                    }
+                }
+            });
+        }
+        Object.keys(ws).forEach(addr => {
+            if (addr[0] === '!') return;
+            const cell = ws[addr];
+            if (!cell) return;
+            const v = cell.v;
+            if (v === null || v === undefined || v === '') {
+                if (cell.s && cell.s.border) return;
+                return;
+            }
+            if (cell.s && cell.s.fill) {
+                cell.s = Object.assign({}, cell.s, { border: XL_BORDER });
+                return;
+            }
+            if (typeof v === 'number') {
+                if (cell.s && cell.s.numFmt === '0') cell.s = Object.assign({}, XL_LOGIN);
+                else cell.s = (v < 0) ? XL_NUM_NEG : XL_NUM_POS;
+            } else {
+                cell.s = cell.s ? Object.assign({}, cell.s, { border: XL_BORDER }) : XL_CELL_STYLE;
+            }
+        });
+    }
+
+    function styleRange(ws, r, c1, c2, style) {
+        for (let C = c1; C <= c2; C++) {
+            const addr = XLSX.utils.encode_cell({ r: r, c: C });
+            if (!ws[addr]) ws[addr] = { t: 's', v: '' };
+            ws[addr].s = Object.assign({}, style, { border: XL_BORDER });
+        }
+    }
+
+    function fmtDateBanner(dateVal, bt) {
+        const parts = String(dateVal || '').trim().split('-');
+        let label = dateVal || '';
+        if (parts.length === 3) {
+            const d = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10);
+            const y = parts[2];
+            const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            if (m >= 1 && m <= 12) label = String(d).padStart(2, '0') + ' ' + months[m] + ' ' + y;
+        }
+        return label + ' (' + bt + ')';
+    }
+
+    // Build one worksheet: returns { aoa, merges, styleHints }
+    function buildSheetAoa(data, bt) {
+        const isGlr = !!(data.IsGLR === true || data.IsGLR === 'true' || data.IsGLR === 1);
+        const period = ((document.getElementById('date-input') || {}).value || '').trim();
+        const btPrefix = (bt === 'Glory') ? 'Glory' : bt;
+
+        let dailyKey, monthlyKey, yearlyKey;
+        if (isGlr || bt === 'Glory') {
+            dailyKey = 'DailyGLR'; monthlyKey = 'MonthlyGLR'; yearlyKey = 'YearlyGLR';
+        } else if (bt === 'Direct') {
+            dailyKey = 'DailyDirect'; monthlyKey = 'MonthlyDirect'; yearlyKey = 'YearlyDirect';
+        } else {
+            dailyKey = 'DailyIB'; monthlyKey = 'MonthlyIB'; yearlyKey = 'YearlyIB';
+        }
+
+        const n = (v) => (v == null || v === '' || isNaN(Number(v)) ? null : Number(v));
+        const aoa = [];
+        const merges = [];
+        const styleHints = [];
+
+        function mergeCols(r, c1, c2) {
+            if (c2 > c1) merges.push({ s: { r: r, c: c1 }, e: { r: r, c: c2 } });
+        }
+        function hint(r, c1, c2, key) {
+            styleHints.push({ r: r, c1: c1, c2: c2, key: key });
+        }
+
+        function metricsPair(metricsObj) {
+            const D = (metricsObj && metricsObj[dailyKey]) || {};
+            const M = (metricsObj && metricsObj[monthlyKey]) || {};
+            const Y = (metricsObj && metricsObj[yearlyKey]) || {};
+            return { D, M, Y };
+        }
+
+        function clientTradeFlat(metricsObj) {
+            const { D, M } = metricsPair(metricsObj);
+            return [
+                ['Daily NetProfit', n(D.NetProfit), 'Monthly NetProfit', n(M.NetProfit)],
+                ['Daily RealizedPL', n(D.RealizedPL), 'Monthly RealizedPL', n(M.RealizedPL)],
+                ['Daily BalanceAdjustment', n(D.BalanceAdjustment), 'Monthly BalanceAdjustment', n(M.BalanceAdjustment)],
+                ['Daily AdjustTransferPosition', n(D.AdjustTransferPos), 'Monthly AdjustTransferPosition', n(M.AdjustTransferPos)],
+                ['Daily Commission', n(D.Commission), 'Monthly Commission', n(M.Commission)],
+                ['Daily Lot', n(D.Lot), 'Monthly Lot', n(M.Lot)],
+                ['FloatingPL', n(D.FloatingPL), null, null]
+            ];
+        }
+
+        // ---- Account Tracer ----
+        aoa.push(['Account Tracer']);
+        aoa.push(['No', 'Date', 'Login', 'Rate', 'Business Type']);
+        const tracer = data.AccountTracer || [];
+        tracer.forEach((t, i) => {
+            const loginNum = t.Login != null ? Number(t.Login) : null;
+            aoa.push([
+                i + 1,
+                t.Date || '',
+                (loginNum != null && !isNaN(loginNum)) ? loginNum : (t.Login || ''),
+                (t.PrevTempRate || '-') + ' → ' + (t.NewTempRate || '-'),
+                (t.PrevTempBusinessType || '-') + ' → ' + (t.NewTempBusinessType || '-')
+            ]);
+        });
+        aoa.push([]);
+
+        // Date banner
+        {
+            const r = aoa.length;
+            const row = [fmtDateBanner(period, btPrefix)];
+            for (let i = 1; i < 12; i++) row.push(null);
+            aoa.push(row);
+            mergeCols(r, 0, 11);
+            hint(r, 0, 11, 'yellow');
+        }
+
+        const ctBlocks = Array.isArray(data.ClientTrade) ? data.ClientTrade : [];
+        const byRate = {};
+        ctBlocks.forEach(b => { if (b && b.Rate) byRate[b.Rate] = b; });
+
+        const bal = metricsPair(data.BalanceReport || {});
+        const balanceFlat = [
+            ['ClientAccountBalance', n(bal.D.ClientAccountBalance), 'Monthly NetDeposit', n(bal.M.NetDeposit)],
+            ['Daily NetDeposit', n(bal.D.NetDeposit), 'Monthly Deposit', n(bal.M.Deposit)],
+            ['Daily Deposit', n(bal.D.Deposit), 'Monthly Withdrawal', n(bal.M.Withdrawal)],
+            ['Daily Withdrawal', n(bal.D.Withdrawal), 'Monthly NewDepositAmount', n(bal.M.NewDepositAmount)],
+            ['Daily NewDepositAmount', n(bal.D.NewDepositAmount), 'Monthly NewFundedAccount', n(bal.M.NewFundedAccount)],
+            ['Daily NewFundedAccount', n(bal.D.NewFundedAccount), 'Monthly AccountTraded', n(bal.M.AccountTraded)],
+            ['Daily AccountTraded', n(bal.D.AccountTraded), 'Yearly AccountTraded', n(bal.Y.AccountTraded)]
+        ];
+
+        // ClientTrade[12K] | BalanceReport
+        {
+            const left = clientTradeFlat((byRate['12K'] || {}).Metrics || {});
+            const r = aoa.length;
+            aoa.push([btPrefix + ' ClientTrade[12K]', null, null, null, btPrefix + ' BalanceReport', null, null, null]);
+            mergeCols(r, 0, 3);
+            mergeCols(r, 4, 7);
+            hint(r, 0, 3, 'orange');
+            hint(r, 4, 7, 'blue');
+
+            const maxMR = Math.max(left.length, balanceFlat.length);
+            for (let i = 0; i < maxMR; i++) {
+                const L = left[i] || [null, null, null, null];
+                const R = balanceFlat[i] || [null, null, null, null];
+                aoa.push([L[0], L[1], L[2], L[3], R[0], R[1], R[2], R[3]]);
+            }
+            aoa.push([]);
+        }
+
+        // ClientTrade[14K] | [10K] | [Float]
+        {
+            const rates = ['14K', '10K', 'Float'];
+            const blocks = rates.map(r => clientTradeFlat((byRate[r] || {}).Metrics || {}));
+            const titleR = aoa.length;
+            const titleRow = [];
+            rates.forEach((r, idx) => {
+                const base = idx * 4;
+                while (titleRow.length < base) titleRow.push(null);
+                titleRow.push(btPrefix + ' ClientTrade[' + r + ']', null, null, null);
+                mergeCols(titleR, base, base + 3);
+                hint(titleR, base, base + 3, 'orange');
+            });
+            aoa.push(titleRow);
+
+            const maxR = Math.max(...blocks.map(b => b.length), 0);
+            for (let i = 0; i < maxR; i++) {
+                const row = [];
+                blocks.forEach((b, idx) => {
+                    const base = idx * 4;
+                    while (row.length < base) row.push(null);
+                    const cells = b[i] || [null, null, null, null];
+                    row.push(cells[0], cells[1], cells[2], cells[3]);
+                });
+                aoa.push(row);
+            }
+            aoa.push([]);
+        }
+
+        // ---- Categories ----
+        function detailVal(row, which) {
+            if (!row) return null;
+            if (isGlr || bt === 'Glory') {
+                return which === 'daily' ? n(row.DailyGlory) : n(row.MonthlyGlory);
+            }
+            if (bt === 'Direct') {
+                return which === 'daily' ? n(row.DailyDirect) : n(row.MonthlyDirect);
+            }
+            return which === 'daily' ? n(row.DailyIB) : n(row.MonthlyIB);
+        }
+
+        const detailList = Array.isArray(data.DetailedEachSymbol) ? data.DetailedEachSymbol : [];
+        const byCat = {};
+        detailList.forEach(r => {
+            const c = r.Category || '';
+            if (!byCat[c]) byCat[c] = {};
+            byCat[c][r.Metric] = r;
+        });
+
+        function catBlockRows(cat) {
+            const map = byCat[cat] || {};
+            if (cat === 'Metal') {
+                return [
+                    ['Daily NetProfit', detailVal(map['NetProfit'], 'daily'), 'Monthly NetProfit', detailVal(map['NetProfit'], 'monthly')],
+                    ['Daily RealizedPL', detailVal(map['RealizedPL'], 'daily'), 'Monthly RealizedPL', detailVal(map['RealizedPL'], 'monthly')],
+                    ['Daily RealizedInterest', detailVal(map['RealizedInterest'], 'daily'), 'Monthly RealizedInterest', detailVal(map['RealizedInterest'], 'monthly')],
+                    ['Daily Commission', detailVal(map['Commission'], 'daily'), 'Monthly Commission', detailVal(map['Commission'], 'monthly')],
+                    ['Daily Lot[XAUUSD]', detailVal(map['Lot[XAUUSD]'], 'daily'), 'Monthly Lot[XAUUSD]', detailVal(map['Lot[XAUUSD]'], 'monthly')],
+                    ['Daily Lot[XAGUSD]', detailVal(map['Lot[XAGUSD]'], 'daily'), 'Monthly Lot[XAGUSD]', detailVal(map['Lot[XAGUSD]'], 'monthly')],
+                    ['FloatingPL', detailVal(map['FloatingPL'], 'daily'), 'FloatingInterest', detailVal(map['FloatingInterest'], 'daily')]
+                ];
+            }
+            return [
+                ['Daily NetProfit', detailVal(map['NetProfit'], 'daily'), 'Monthly NetProfit', detailVal(map['NetProfit'], 'monthly')],
+                ['Daily RealizedPL', detailVal(map['RealizedPL'], 'daily'), 'Monthly RealizedPL', detailVal(map['RealizedPL'], 'monthly')],
+                ['Daily RealizedInterest', detailVal(map['RealizedInterest'], 'daily'), 'Monthly RealizedInterest', detailVal(map['RealizedInterest'], 'monthly')],
+                ['Daily Commission', detailVal(map['Commission'], 'daily'), 'Monthly Commission', detailVal(map['Commission'], 'monthly')],
+                ['Daily Lot', detailVal(map['Lot'], 'daily'), 'Monthly Lot', detailVal(map['Lot'], 'monthly')],
+                ['FloatingPL', detailVal(map['FloatingPL'], 'daily'), 'FloatingInterest', detailVal(map['FloatingInterest'], 'daily')]
+            ];
+        }
+
+        function appendCats(cats, colors) {
+            const titleR = aoa.length;
+            const titleRow = [];
+            cats.forEach((cat, idx) => {
+                const base = idx * 4;
+                while (titleRow.length < base) titleRow.push(null);
+                titleRow.push(cat, null, null, null);
+                mergeCols(titleR, base, base + 3);
+                hint(titleR, base, base + 3, colors[idx] || 'lightblue');
+            });
+            aoa.push(titleRow);
+
+            const blocks = cats.map(c => catBlockRows(c));
+            const maxR = Math.max(...blocks.map(b => b.length), 0);
+            for (let i = 0; i < maxR; i++) {
+                const row = [];
+                blocks.forEach((b, idx) => {
+                    const base = idx * 4;
+                    while (row.length < base) row.push(null);
+                    const cells = b[i] || [null, null, null, null];
+                    row.push(cells[0], cells[1], cells[2], cells[3]);
+                });
+                aoa.push(row);
+            }
+            aoa.push([]);
+        }
+
+        appendCats(['Forex', 'Metal', 'US Stock'], ['lightblue', 'catyellow', 'lightblue']);
+        appendCats(['Energy', 'Index'], ['catyellow', 'lightblue']);
+
+        // Top 10 Client Rank
+        {
+            const r = aoa.length;
+            const row = ['Top 10 Client Rank'];
+            for (let i = 1; i < 12; i++) row.push(null);
+            aoa.push(row);
+            mergeCols(r, 0, 11);
+            hint(r, 0, 11, 'blue');
+        }
+
+        function topList(section) {
+            if (!section) return [];
+            if (isGlr || bt === 'Glory') return Array.isArray(section) ? section : [];
+            if (bt === 'Direct') return section.Direct || [];
+            return section.IB || [];
+        }
+
+        {
+            const titles = ['Top 10 Winner (Daily)', 'Top 10 Loser (Daily)', 'Top 10 Volume (Daily)'];
+            const lists = [topList(data.Top10Winner), topList(data.Top10Loser), topList(data.Top10Volume)];
+            const titleR = aoa.length;
+            const titleRow = [];
+            titles.forEach((t, idx) => {
+                const base = idx * 4;
+                while (titleRow.length < base) titleRow.push(null);
+                titleRow.push(t, null, null);
+                mergeCols(titleR, base, base + 2);
+                hint(titleR, base, base + 2, 'orange');
+            });
+            aoa.push(titleRow);
+
+            const hdrR = aoa.length;
+            const hdr = [];
+            titles.forEach((_, idx) => {
+                const base = idx * 4;
+                while (hdr.length < base) hdr.push(null);
+                hdr.push('Account Number', 'Volume', 'Amount');
+            });
+            aoa.push(hdr);
+            hint(hdrR, 0, 2, 'orange');
+            hint(hdrR, 4, 6, 'orange');
+            hint(hdrR, 8, 10, 'orange');
+
+            const maxT = Math.max(...lists.map(l => l.length), 0);
+            for (let i = 0; i < maxT; i++) {
+                const row = [];
+                lists.forEach((l, idx) => {
+                    const base = idx * 4;
+                    while (row.length < base) row.push(null);
+                    const r = l[i] || {};
+                    const loginNum = r.Login != null ? Number(r.Login) : null;
+                    row.push(
+                        (loginNum != null && !isNaN(loginNum)) ? loginNum : (r.Login || null),
+                        n(r.Volume),
+                        n(r.Amount)
+                    );
+                });
+                aoa.push(row);
+            }
+            aoa.push([]);
+        }
+
+        {
+            const titles = ['Top 10 Deposit (Daily)', 'Top 10 Withdrawal (Daily)'];
+            const lists = [topList(data.Top10Deposit), topList(data.Top10Withdrawal)];
+            const titleR = aoa.length;
+            const titleRow = [];
+            titles.forEach((t, idx) => {
+                const base = idx * 4;
+                while (titleRow.length < base) titleRow.push(null);
+                titleRow.push(t, null);
+                mergeCols(titleR, base, base + 1);
+                hint(titleR, base, base + 1, 'orange');
+            });
+            aoa.push(titleRow);
+
+            const hdrR = aoa.length;
+            const hdr = [];
+            titles.forEach((_, idx) => {
+                const base = idx * 4;
+                while (hdr.length < base) hdr.push(null);
+                hdr.push('Account Number', 'Amount');
+            });
+            aoa.push(hdr);
+            hint(hdrR, 0, 1, 'orange');
+            hint(hdrR, 4, 5, 'orange');
+
+            const maxT = Math.max(...lists.map(l => l.length), 0);
+            for (let i = 0; i < maxT; i++) {
+                const row = [];
+                lists.forEach((l, idx) => {
+                    const base = idx * 4;
+                    while (row.length < base) row.push(null);
+                    const r = l[i] || {};
+                    const loginNum = r.Login != null ? Number(r.Login) : null;
+                    row.push(
+                        (loginNum != null && !isNaN(loginNum)) ? loginNum : (r.Login || null),
+                        n(r.Amount)
+                    );
+                });
+                aoa.push(row);
+            }
+        }
+
+        return { aoa: aoa, merges: merges, styleHints: styleHints };
+    }
+
+    function exportExcel() {
+        if (!lastReportData) return alert('No results to export. Run the report first.');
+
+        const data = lastReportData;
+        const isGlr = !!(data.IsGLR === true || data.IsGLR === 'true' || data.IsGLR === 1);
+        const wl = (document.getElementById('whitelabel') || {}).value || (isGlr ? 'GLR' : 'HSB');
+        const period = ((document.getElementById('date-input') || {}).value || '').trim() || 'nodate';
+        const fileName = REPORT_TYPE + '_' + wl + '-' + period + '.xlsx';
+
+        const wb = XLSX.utils.book_new();
+        const sheets = isGlr ? ['Glory'] : ['IB', 'Direct'];
+
+        const styleMap = {
+            yellow: XL_YELLOW,
+            orange: XL_ORANGE,
+            blue: XL_BLUE,
+            lightblue: XL_LIGHT_BLUE,
+            catyellow: XL_CAT_YELLOW
+        };
+
+        sheets.forEach(name => {
+            const built = buildSheetAoa(data, name);
+            const aoa = built.aoa;
+            const merges = built.merges || [];
+            const hints = built.styleHints || [];
+            const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+            if (merges.length) ws['!merges'] = merges;
+
+            hints.forEach(h => {
+                const st = styleMap[h.key];
+                if (st) styleRange(ws, h.r, h.c1, h.c2, st);
+            });
+
+            Object.keys(ws).forEach(addr => {
+                if (addr[0] === '!') return;
+                const cell = ws[addr];
+                if (!cell || typeof cell.v !== 'number') return;
+                if (Number.isInteger(cell.v) && cell.v >= 100000) {
+                    cell.s = Object.assign({}, XL_LOGIN);
+                }
+            });
+
+            ws['!cols'] = [];
+            for (let i = 0; i < 12; i++) ws['!cols'].push({ wch: i % 4 === 0 ? 28 : 14 });
+
+            applySheetBorders(ws);
+            XLSX.utils.book_append_sheet(wb, ws, name);
+        });
+
+        XLSX.writeFile(wb, fileName);
+    }
+
+    socket.on('report-result', p => { if(p.reportType!==REPORT_TYPE) return; document.getElementById('loading').classList.add('d-none'); render(p.data||{}); });
+    socket.on('report-error', p => {
+        if(p.reportType && p.reportType!==REPORT_TYPE) return;
+        document.getElementById('loading').classList.add('d-none');
+        const box=document.getElementById('error-box');
+        box.textContent = p.message || 'Error';
+        if(p.rawOutput) box.textContent += '\n'+p.rawOutput.substring(0,800);
+        box.classList.remove('d-none');
+    });
+
+
+    function setTheme(t){ document.documentElement.setAttribute('data-theme',t); document.body.setAttribute('data-theme',t); localStorage.setItem('theme',t);
+        document.getElementById('theme-toggle').innerHTML = t==='dark'
+            ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`
+            : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setTheme(localStorage.getItem('theme')||'light');
+        document.getElementById('theme-toggle').onclick = () => setTheme((document.documentElement.getAttribute('data-theme')||'light')==='dark'?'light':'dark');
+        
+        const toggler = document.querySelector('.navbar-toggler');
+        if (toggler) toggler.addEventListener('click', () => toggler.classList.toggle('rotated'));
+// Calendar: weekends not selectable (no special gray styling)
+        fp = flatpickr('#date-input', {
+            dateFormat: 'd-m-Y',
+            allowInput: false,
+            disable: [function(date) { return (date.getDay() === 0 || date.getDay() === 6); }]
+        });
+    });
+    </script>
+</body>
+</html>

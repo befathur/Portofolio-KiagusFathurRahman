@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8" />
+   <title>PrinceJF - TLM</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' fill='white'/%3E%3Cellipse cx='50' cy='50' rx='35' ry='10' fill='none' stroke='white' stroke-width='4'/%3E%3C/svg%3E">
+   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <style>
+      :root {
+         --bg: #e0e5ec; --bg-soft: #e8edf3; --text: #2d3748; --text-muted: #718096;
+         --accent: #4a6cf7; --accent-soft: rgba(74, 108, 247, 0.12);
+         --success: #10b981; --warning: #f59e0b; --info: #0ea5e9; --danger: #ef4444;
+         --shadow-out: 8px 8px 16px #a3b1c6, -8px -8px 16px #ffffff;
+         --shadow-out-sm: 4px 4px 10px #a3b1c6, -4px -4px 10px #ffffff;
+         --shadow-in: inset 5px 5px 10px #a3b1c6, inset -5px -5px 10px #ffffff;
+         --shadow-in-sm: inset 3px 3px 6px #a3b1c6, inset -3px -3px 6px #ffffff;
+         --radius: 18px; --radius-sm: 12px; --radius-pill: 999px;
+         --card-bg: #e0e5ec; --table-header: #d4dbe6; --border-soft: rgba(163, 177, 198, 0.35);
+         --navbar-bg: #e0e5ec;
+      }
+      [data-theme="dark"] {
+         --bg: #1a1d24; --bg-soft: #22262f; --text: #e2e8f0; --text-muted: #94a3b8;
+         --accent: #7c9cff; --accent-soft: rgba(124, 156, 255, 0.15);
+         --success: #34d399; --warning: #fbbf24; --info: #38bdf8; --danger: #f87171;
+         --shadow-out: 8px 8px 18px #0d0f14, -8px -8px 18px #2a2f3a;
+         --shadow-out-sm: 4px 4px 12px #0d0f14, -4px -4px 12px #2a2f3a;
+         --shadow-in: inset 5px 5px 12px #0d0f14, inset -5px -5px 12px #2a2f3a;
+         --shadow-in-sm: inset 3px 3px 7px #0d0f14, inset -3px -3px 7px #2a2f3a;
+         --card-bg: #1a1d24; --table-header: #252a34; --border-soft: rgba(148, 163, 184, 0.12);
+         --navbar-bg: #1a1d24;
+      }
+      *, *::before, *::after { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+         background: var(--bg); color: var(--text); padding: 16px; padding-top: 96px;
+         min-height: 100dvh; transition: background 0.45s ease, color 0.45s ease;
+         -webkit-font-smoothing: antialiased; letter-spacing: -0.01em;
+      }
+      .navbar {
+         position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+         width: min(94%, 1180px); background: var(--navbar-bg) !important;
+         box-shadow: var(--shadow-out); border: none !important; border-radius: var(--radius);
+         padding: 10px 16px; z-index: 1030; transition: box-shadow 0.4s ease, background 0.4s ease;
+      }
+      .navbar-brand { font-weight: 700; color: var(--accent) !important; font-size: 1.25rem; letter-spacing: -0.02em; padding: 6px 12px; border-radius: var(--radius-sm); }
+      .navbar-nav .nav-link { color: var(--text) !important; font-size: 0.9rem; font-weight: 500; padding: 8px 14px !important; margin: 2px 3px; border-radius: var(--radius-sm); transition: all 0.25s ease; }
+      .navbar-nav .nav-link:hover { color: var(--accent) !important; background: var(--accent-soft); box-shadow: var(--shadow-in-sm); }
+      .navbar-nav .nav-link.active { color: var(--accent) !important; font-weight: 600; background: var(--accent-soft); box-shadow: var(--shadow-in-sm); }
+      .theme-toggle {
+         width: 42px; height: 42px; border: none; background: var(--bg); color: var(--accent);
+         border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+         box-shadow: var(--shadow-out-sm); transition: all 0.3s ease; margin-left: auto; margin-right: 10px; flex-shrink: 0;
+      }
+      .theme-toggle:hover { box-shadow: var(--shadow-in-sm); transform: scale(1.05); }
+      .theme-toggle:active { box-shadow: var(--shadow-in); }
+      .theme-toggle svg { width: 20px; height: 20px; }
+      .navbar-toggler { border: none !important; padding: 8px; border-radius: 50%; box-shadow: var(--shadow-out-sm); background: var(--bg); transition: all 0.35s ease; }
+      .navbar-toggler:focus { box-shadow: var(--shadow-in-sm); }
+      .navbar-toggler.rotated { transform: rotate(90deg); }
+      .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(74,108,247,0.85)' stroke-width='2.2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); }
+      [data-theme="dark"] .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(124,156,255,0.9)' stroke-width='2.2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); }
+      @media (max-width: 991.98px) {
+         .navbar-collapse { background: var(--bg); border-radius: var(--radius-sm); margin-top: 12px; padding: 10px; box-shadow: var(--shadow-in-sm); }
+         .navbar-nav { margin-left: 0 !important; }
+         .navbar-nav .nav-link { padding: 12px 16px !important; }
+      }
+      .page-title { font-weight: 700; font-size: clamp(1.4rem, 4vw, 1.85rem); letter-spacing: -0.03em; color: var(--text); text-align: center; margin-bottom: 0.4rem; }
+      .datetime-badge { display: inline-block; background: var(--bg); color: var(--text-muted); font-size: 0.85rem; font-weight: 500; padding: 8px 18px; border-radius: var(--radius-pill); box-shadow: var(--shadow-in-sm); letter-spacing: 0.01em; }
+      .neo-btn { background: var(--bg); color: var(--accent); border: none; font-weight: 600; font-size: 0.875rem; padding: 10px 22px; border-radius: var(--radius-pill); box-shadow: var(--shadow-out-sm); transition: all 0.25s ease; cursor: pointer; }
+      .neo-btn:hover { box-shadow: var(--shadow-in-sm); color: var(--accent); }
+      .neo-btn:active { box-shadow: var(--shadow-in); transform: scale(0.98); }
+      .neo-btn-sm { font-size: 0.75rem; padding: 5px 12px; border-radius: var(--radius-sm); font-weight: 600; background: var(--bg); color: var(--text); border: none; box-shadow: var(--shadow-out-sm); transition: all 0.2s ease; cursor: pointer; }
+      .neo-btn-sm:hover { box-shadow: var(--shadow-in-sm); color: var(--accent); }
+      .neo-btn-sm:active { box-shadow: var(--shadow-in); }
+      .neo-card { background: var(--card-bg); border: none !important; border-radius: var(--radius); box-shadow: var(--shadow-out); overflow: hidden; height: 100%; transition: box-shadow 0.35s ease, transform 0.3s ease; }
+      .neo-card:hover { transform: translateY(-2px); }
+      .neo-card-header { background: transparent !important; color: var(--text) !important; font-weight: 600; font-size: 0.95rem; letter-spacing: -0.01em; padding: 14px 18px; border-bottom: none; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+      .neo-card-header .accent-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 0 3px rgba(255,255,255,0.15); }
+      .neo-card-body { padding: 12px 16px 18px !important; }
+      .accent-success { color: var(--success); } .accent-warning { color: var(--warning); } .accent-info { color: var(--info); }
+      .accent-primary { color: var(--accent); } .accent-danger { color: var(--danger); } .accent-dark { color: var(--text-muted); }
+      .dot-success { background: var(--success); } .dot-warning { background: var(--warning); } .dot-info { background: var(--info); }
+      .dot-primary { background: var(--accent); } .dot-danger { background: var(--danger); } .dot-dark { background: var(--text-muted); }
+      .chart-container { position: relative; height: 180px; width: 180px; margin: 8px auto; }
+      .chart-container canvas { width: 100% !important; height: 100% !important; }
+      .chart-text {
+         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+         text-align: center; pointer-events: none; z-index: 2;
+         display: flex; flex-direction: column; align-items: center; justify-content: center;
+         line-height: 1.15; width: 70%;
+      }
+      .chart-text div:first-child { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+      .chart-label { font-size: 0.7rem; margin-top: 2px; color: var(--text-muted) !important; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+
+      /* Lock top two cards to same size as LPA margin-ratio cards */
+      .tlm-top-card {
+         height: 300px !important;
+         max-height: 300px !important;
+         display: flex;
+         flex-direction: column;
+      }
+      .tlm-top-card .neo-card-body {
+         flex: 1 1 auto;
+         min-height: 0;
+         overflow: hidden;
+         display: flex;
+         flex-direction: column;
+         padding: 10px 14px 14px !important;
+      }
+      .tlm-top-card .table-responsive {
+         flex: 1 1 auto;
+         min-height: 0;
+         overflow-y: auto !important;
+         overflow-x: auto;
+         max-height: none;
+         scrollbar-width: thin;
+         scrollbar-color: var(--text-muted) transparent;
+      }
+      .tlm-top-card .table-responsive::-webkit-scrollbar { width: 6px; height: 6px; }
+      .tlm-top-card .table-responsive::-webkit-scrollbar-thumb {
+         background: var(--text-muted); border-radius: 10px; opacity: 0.4;
+      }
+      .tlm-top-card .table thead th {
+         position: sticky; top: 0; z-index: 1;
+      }
+      .tlm-top-card .chart-wrap {
+         flex: 1 1 auto;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         justify-content: center;
+         min-height: 0;
+         gap: 6px;
+      }
+      .equity-legend {
+         display: flex;
+         gap: 16px;
+         align-items: center;
+         justify-content: center;
+         font-size: 0.75rem;
+         font-weight: 500;
+         color: var(--text-muted);
+      }
+      .equity-legend .eq-leg { display: inline-flex; align-items: center; gap: 6px; }
+      .equity-legend .eq-dot {
+         width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+      }
+      .equity-legend .eq-tx { background: #4a6cf7; }
+      .equity-legend .eq-vx { background: #f59e0b; }
+      .equity-legend strong { color: var(--text); font-weight: 700; }
+      @media (max-width: 575.98px) {
+         .tlm-top-card { height: 280px !important; max-height: 280px !important; }
+      }
+      .table { background: transparent !important; color: var(--text) !important; margin-bottom: 0; --bs-table-bg: transparent; --bs-table-color: var(--text); --bs-table-border-color: var(--border-soft); --bs-table-hover-bg: var(--accent-soft); }
+      .table th, .table td { vertical-align: middle; font-size: 0.8rem; color: var(--text) !important; border-color: var(--border-soft) !important; text-align: right; padding: 0.55rem 0.65rem; background: transparent !important; }
+      .table th:first-child, .table td:first-child { text-align: left; font-weight: 500; }
+      .table thead th { background: var(--table-header) !important; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted) !important; border: none !important; }
+      .table thead th:first-child { border-radius: 8px 0 0 8px; } .table thead th:last-child { border-radius: 0 8px 8px 0; }
+      .table-responsive { border-radius: var(--radius-sm); box-shadow: var(--shadow-in-sm); padding: 4px; background: var(--bg); }
+      .positive { color: var(--success) !important; font-weight: 600; } .negative { color: var(--danger) !important; font-weight: 600; }
+      .grand-total-row { background: var(--accent-soft) !important; font-weight: 700; }
+      .grand-total-row td { border-top: 2px solid var(--border-soft) !important; font-size: 0.82rem; }
+      .neo-row { display: flex; flex-wrap: nowrap; gap: 1.1rem; overflow-x: auto; padding: 6px 4px 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: var(--text-muted) transparent; }
+      .neo-row::-webkit-scrollbar { height: 6px; } .neo-row::-webkit-scrollbar-track { background: transparent; }
+      .neo-row::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 10px; opacity: 0.4; }
+      .neo-row > [class*="col-"] { flex: 0 0 auto; scroll-snap-align: start; width: min(100%, 340px); }
+      @media (min-width: 768px) { .neo-row > [class*="col-"] { width: calc(50% - 0.55rem); min-width: 280px; } }
+      @media (min-width: 1200px) { .neo-row { flex-wrap: wrap; overflow-x: visible; } .neo-row > [class*="col-"] { width: calc(50% - 0.55rem); } }
+      .neo-section { margin-bottom: 1.75rem; }
+      @media (max-width: 575.98px) {
+         body { padding: 12px; padding-top: 88px; } .navbar { top: 10px; width: 96%; padding: 8px 12px; }
+         .chart-container { height: 150px; width: 150px; } .neo-card-header { font-size: 0.88rem; padding: 12px 14px; }
+         .table th, .table td { font-size: 0.75rem; padding: 0.45rem 0.5rem; } .page-title { font-size: 1.35rem; }
+      }
+      @media print {
+         .navbar, .theme-toggle, #print-pdf, .copy-table-btn, .suffix-btn, .navbar-toggler { display: none !important; }
+         body, html {
+            background: var(--bg) !important;
+            color: var(--text) !important;
+            padding-top: 20px !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+         }
+         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      }
+   </style>
+<script src="../assets/mock-socket.js"></script>
+</head>
+<body data-theme="light">
+   <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid px-1">
+         <a class="navbar-brand" href="../hsb/lpa.html">Remember Me.</a>
+         <button id="theme-toggle" class="theme-toggle" title="Toggle Dark Mode" aria-label="Toggle theme">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+         </button>
+         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+         </button>
+         <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mb-2 mb-lg-0 ms-auto">
+               <li class="nav-item"><a class="nav-link" href="../index.html">About</a></li>
+               <li class="nav-item"><a class="nav-link active" href="../hsb/tlm.html">TLM</a></li>
+               <li class="nav-item"><a class="nav-link" href="../hsb/lpa.html">LPA</a></li>
+               <li class="nav-item"><a class="nav-link" href="../hsb/ect.html">ECT</a></li>
+               <li class="nav-item"><a class="nav-link" href="../hsb/drs.html">DRS</a></li>
+               <li class="nav-item"><a class="nav-link" href="../hsb/ras.html">RAS</a></li>
+               <li class="nav-item"><a class="nav-link" href="../hsb/isr.html">ISR</a></li>
+               <li class="nav-item"><a class="nav-link" href="../hsb/pd.html">PD</a></li>
+            </ul>
+         </div>
+      </div>
+   </nav>
+
+   <div class="container-fluid px-1" id="tlm-content">
+      <h1 class="page-title">Traffic Light Monitor</h1>
+      <div class="text-center mb-4">
+         <span id="current-datetime" class="datetime-badge"></span>
+         <div class="mt-3 d-flex justify-content-center gap-2 flex-wrap">
+            <button id="print-pdf" class="neo-btn">Print PDF</button>
+            <a href="../hsb/tlm/dev-mode.html" class="neo-btn" style="text-decoration:none;display:inline-flex;align-items:center;">Dev Mode</a>
+         </div>
+      </div>
+
+      <div class="neo-section">
+         <div class="neo-row">
+            <div class="col-12 col-md-6">
+               <div class="neo-card tlm-top-card">
+                  <div class="neo-card-header accent-primary">
+                     <span><span class="accent-dot dot-primary"></span>Liquidity Traffic Light</span>
+                     <button class="neo-btn-sm copy-table-btn" data-table="tlm">Copy</button>
+                  </div>
+                  <div class="neo-card-body">
+                     <div class="table-responsive">
+                        <table class="table table-sm mb-0" id="tlm-table">
+                           <thead><tr><th>Symbol</th><th>MVIP Traffic Light</th><th>V Traffic Light</th></tr></thead>
+                           <tbody></tbody>
+                        </table>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div class="col-12 col-md-6">
+               <div class="neo-card tlm-top-card">
+                  <div class="neo-card-header accent-success">
+                     <span><span class="accent-dot dot-success"></span>Equity Traffic Light</span>
+                  </div>
+                  <div class="neo-card-body">
+                     <div class="chart-wrap">
+                        <div class="chart-container">
+                           <canvas id="equity-chart"></canvas>
+                           <div class="chart-text">
+                              <div id="equity-total">0</div>
+                              <div class="chart-label">Accounts</div>
+                           </div>
+                        </div>
+                        <div class="equity-legend" id="equity-legend">
+                           <span class="eq-leg"><i class="eq-dot eq-tx"></i> TX <strong id="equity-tx">0</strong></span>
+                           <span class="eq-leg"><i class="eq-dot eq-vx"></i> VX <strong id="equity-vx">0</strong></span>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <div class="neo-section">
+         <div class="neo-card">
+            <div class="neo-card-header accent-dark">
+               <span><span class="accent-dot dot-dark"></span>Equity Traffic Light Summary</span>
+               <button class="neo-btn-sm copy-table-btn" data-table="txvx-summary">Copy</button>
+            </div>
+            <div class="neo-card-body">
+               <div class="table-responsive">
+                  <table class="table table-sm mb-0" id="txvx-summary-table">
+                     <thead><tr><th>Category</th><th>Login List</th></tr></thead>
+                     <tbody></tbody>
+                  </table>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <div class="neo-section">
+         <div class="neo-card">
+            <div class="neo-card-header accent-danger">
+               <span><span class="accent-dot dot-danger"></span>TX Equity Position HPOV</span>
+               <button class="neo-btn-sm copy-table-btn" data-table="tx-exposure">Copy</button>
+            </div>
+            <div class="neo-card-body">
+               <div class="table-responsive">
+                  <table class="table table-sm mb-0" id="tx-exposure-table">
+                     <thead><tr><th>Symbol</th><th>Amount</th><th>Floating PL</th><th>Closed PL</th></tr></thead>
+                     <tbody></tbody>
+                  </table>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <div class="neo-section">
+         <div class="neo-card">
+            <div class="neo-card-header accent-warning">
+               <span><span class="accent-dot dot-warning"></span>VX Equity Position HPOV</span>
+               <button class="neo-btn-sm copy-table-btn" data-table="vx-exposure">Copy</button>
+            </div>
+            <div class="neo-card-body">
+               <div class="table-responsive">
+                  <table class="table table-sm mb-0" id="vx-exposure-table">
+                     <thead><tr><th>Symbol</th><th>Amount</th><th>Floating PL</th><th>Closed PL</th></tr></thead>
+                     <tbody></tbody>
+                  </table>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <script src="/socket.io/socket.io.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+   <script>
+      const socket = io();
+
+      function formatNumber(num, digits = 2) {
+         return Number(num || 0).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+      }
+
+      function setTheme(theme) {
+         document.documentElement.setAttribute('data-theme', theme);
+         document.body.setAttribute('data-theme', theme);
+         localStorage.setItem('theme', theme);
+         const toggleBtn = document.getElementById('theme-toggle');
+         if (theme === 'dark') {
+            toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>`;
+            toggleBtn.title = "Switch to Light Mode";
+         } else {
+            toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>`;
+            toggleBtn.title = "Switch to Dark Mode";
+         }
+      }
+      function initTheme() { setTheme(localStorage.getItem('theme') || 'light'); }
+      function toggleTheme() {
+         const current = document.documentElement.getAttribute('data-theme') || 'light';
+         setTheme(current === 'dark' ? 'light' : 'dark');
+      }
+
+      function updateCurrentDateTime() {
+         const el = document.getElementById('current-datetime');
+         if (!el) return;
+         el.textContent = new Date().toLocaleString(undefined, {
+            year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+         });
+      }
+
+      function fillTable(tableId, rowsHTML) {
+         const tbody = document.querySelector(`#${tableId} tbody`);
+         if (!tbody) return;
+         tbody.innerHTML = rowsHTML || '<tr><td colspan="4" class="text-center text-muted py-3">(no data)</td></tr>';
+      }
+
+      function createEquityChart(txCount, vxCount) {
+         const ctx = document.getElementById('equity-chart')?.getContext('2d');
+         if (!ctx) return;
+         if (window.equityChart) window.equityChart.destroy();
+         window.equityChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+               labels: ['TX', 'VX'],
+               datasets: [{
+                  data: [txCount, vxCount],
+                  backgroundColor: ['#4a6cf7', '#f59e0b'],
+                  borderWidth: 0,
+                  cutout: '72%'
+               }]
+            },
+            options: {
+               responsive: true,
+               maintainAspectRatio: false,
+               layout: { padding: 0 },
+               plugins: {
+                  legend: { display: false },
+                  tooltip: { enabled: true }
+               }
+            }
+         });
+         // Center total quantity + "Accounts" inside the donut hole
+         const totalEl = document.getElementById('equity-total');
+         if (totalEl) totalEl.textContent = txCount + vxCount;
+         const txEl = document.getElementById('equity-tx');
+         const vxEl = document.getElementById('equity-vx');
+         if (txEl) txEl.textContent = txCount;
+         if (vxEl) vxEl.textContent = vxCount;
+      }
+
+      function processTrafficLight(data) {
+         const items = data.traffic_light || [];
+         const mvipMap = {}, vMap = {};
+         items.forEach(item => {
+            const sym = item.symbol;
+            if (sym.endsWith('.V')) vMap[sym.slice(0, -2)] = item.traffic_light;
+            else mvipMap[sym] = item.traffic_light;
+         });
+         const allSymbols = new Set([...Object.keys(mvipMap), ...Object.keys(vMap)]);
+         let html = '';
+         Array.from(allSymbols).sort().forEach(symbol => {
+            html += `<tr><td>${symbol}</td><td>${mvipMap[symbol] || '-'}</td><td>${vMap[symbol] || '-'}</td></tr>`;
+         });
+         fillTable('tlm-table', html);
+      }
+
+      socket.on('mt5-update', (data) => {
+         const tl = data.trafficlight || {};
+         processTrafficLight(tl);
+
+         let summaryHTML = '';
+         (tl.txvx_accounts || []).forEach(item => {
+            summaryHTML += `<tr>
+               <td><strong>${item.category}</strong></td>
+               <td style="font-size:0.9em; word-break:break-all;">${(item.logins || '').split(',').map(x => x.trim()).join(', ')}</td>
+            </tr>`;
+         });
+         fillTable('txvx-summary-table', summaryHTML);
+
+         let txCount = 0, vxCount = 0;
+         (tl.txvx_accounts || []).forEach(item => {
+            if (item.category === 'TX') txCount = Number(item.quantity || 0);
+            if (item.category === 'VX') vxCount = Number(item.quantity || 0);
+         });
+         createEquityChart(txCount, vxCount);
+
+         let txHTML = '';
+         (tl.txvx_exposure?.TX?.positions || []).forEach(p => {
+            txHTML += `<tr>
+               <td>${p.symbol}</td>
+               <td class="${(Number(p.amount)>0?'positive':(Number(p.amount)<0?'negative':''))}">${formatNumber(p.amount, 0)}</td>
+               <td class="${(Number(p.floatingPL)>0?'positive':(Number(p.floatingPL)<0?'negative':''))}">${formatNumber(p.floatingPL)}</td>
+               <td class="${(Number(p.closedPL)>0?'positive':(Number(p.closedPL)<0?'negative':''))}">${formatNumber(p.closedPL)}</td>
+            </tr>`;
+         });
+         fillTable('tx-exposure-table', txHTML);
+
+         let vxHTML = '';
+         (tl.txvx_exposure?.VX?.positions || []).forEach(p => {
+            vxHTML += `<tr>
+               <td>${p.symbol}</td>
+               <td class="${(Number(p.amount)>0?'positive':(Number(p.amount)<0?'negative':''))}">${formatNumber(p.amount, 0)}</td>
+               <td class="${(Number(p.floatingPL)>0?'positive':(Number(p.floatingPL)<0?'negative':''))}">${formatNumber(p.floatingPL)}</td>
+               <td class="${(Number(p.closedPL)>0?'positive':(Number(p.closedPL)<0?'negative':''))}">${formatNumber(p.closedPL)}</td>
+            </tr>`;
+         });
+         fillTable('vx-exposure-table', vxHTML);
+         updateCurrentDateTime();
+      });
+
+      document.addEventListener('click', function(e) {
+         const btn = e.target.closest('.copy-table-btn');
+         if (!btn) return;
+         const map = { tlm: '#tlm-table', 'txvx-summary': '#txvx-summary-table', 'tx-exposure': '#tx-exposure-table', 'vx-exposure': '#vx-exposure-table' };
+         const table = document.querySelector(map[btn.dataset.table]);
+         if (!table) return;
+         const headerSpan = btn.closest('.neo-card-header')?.querySelector('span');
+         let text = (headerSpan ? headerSpan.textContent.trim() : '') + '\n\n';
+         table.querySelectorAll('thead th').forEach((h, i, arr) => { text += h.textContent.trim() + (i < arr.length - 1 ? '\t' : '\n'); });
+         table.querySelectorAll('tbody tr').forEach(row => {
+            text += Array.from(row.cells).map(c => c.textContent.trim()).join('\t') + '\n';
+         });
+         navigator.clipboard.writeText(text.trim()).then(() => {
+            const o = btn.textContent; btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = o, 1400);
+         });
+      });
+
+      document.getElementById('print-pdf').addEventListener('click', async () => {
+         const DESKTOP_W = 1400;
+         const MARGIN_IN = 0.4;
+         const navbar = document.querySelector('.navbar');
+         const body = document.body;
+         const html = document.documentElement;
+         const collapse = document.querySelector('.navbar-collapse');
+         const element = document.getElementById('tlm-content') || body;
+
+         // Read the CURRENT theme at the moment Print PDF is clicked.
+         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+         // PDF paper: pure black in Dark Mode, pure white in Light Mode.
+         const pdfBg = isDark ? '#000000' : '#ffffff';
+
+         const original = {
+            bodyWidth: body.style.width,
+            bodyMaxWidth: body.style.maxWidth,
+            bodyMinWidth: body.style.minWidth,
+            bodyZoom: body.style.zoom,
+            bodyPadTop: body.style.paddingTop,
+            bodyPadLeft: body.style.paddingLeft,
+            bodyPadRight: body.style.paddingRight,
+            bodyOverflow: body.style.overflow,
+            bodyBackground: body.style.backgroundColor,
+            htmlWidth: html.style.width,
+            htmlOverflow: html.style.overflow,
+            htmlBackground: html.style.backgroundColor,
+            navbarDisplay: navbar ? navbar.style.display : '',
+            collapseClass: collapse ? collapse.className : '',
+            collapseStyle: collapse ? collapse.getAttribute('style') : null,
+            elementBackground: element.style.backgroundColor,
+            elementPadding: element.style.padding,
+            elementBoxSizing: element.style.boxSizing,
+            elementWidth: element.style.width
+         };
+
+         const hiddenEls = [];
+
+         try {
+            document.querySelectorAll(
+               '.theme-toggle, #print-pdf, .copy-table-btn, .suffix-btn, .navbar-toggler'
+            ).forEach((el) => {
+               hiddenEls.push([el, el.style.display]);
+               el.style.display = 'none';
+            });
+
+            // Force desktop layout for PDF export.
+            body.style.width = DESKTOP_W + 'px';
+            body.style.maxWidth = 'none';
+            body.style.minWidth = DESKTOP_W + 'px';
+            body.style.zoom = '1';
+            body.style.paddingTop = '0';
+            body.style.paddingLeft = '0';
+            body.style.paddingRight = '0';
+            body.style.overflow = 'visible';
+            body.style.backgroundColor = pdfBg;
+
+            html.style.width = DESKTOP_W + 'px';
+            html.style.overflow = 'visible';
+            html.style.backgroundColor = pdfBg;
+
+            if (navbar) navbar.style.display = 'none';
+
+            if (collapse) {
+               collapse.classList.add('show');
+               collapse.style.display = 'flex';
+            }
+
+            /*
+             * html2pdf normally leaves the jsPDF page/margin area white.
+             * Make the export element itself the complete PDF paper.
+             * The 0.4in padding preserves the previous PDF margin.
+             */
+            element.style.backgroundColor = pdfBg;
+            element.style.boxSizing = 'border-box';
+            element.style.padding = `${MARGIN_IN}in`;
+            element.style.width = DESKTOP_W + 'px';
+
+            void body.offsetHeight;
+            void element.offsetHeight;
+
+            const contentW = Math.max(
+               element.scrollWidth || 0,
+               element.offsetWidth || 0,
+               DESKTOP_W
+            );
+
+            const contentH = Math.max(
+               element.scrollHeight || 0,
+               body.scrollHeight || 0,
+               900
+            );
+
+            // No jsPDF margin: the export element already contains
+            // the 0.4in paper padding and its background.
+            const pageW = Math.max(contentW / 96, 8.5);
+            const pageH = Math.max(contentH / 96, 11);
+
+            await html2pdf().from(element).set({
+               margin: 0,
+               filename: 'TLM_Monitor.pdf',
+               image: {
+                  type: 'jpeg',
+                  quality: 0.98
+               },
+               html2canvas: {
+                  scale: 2,
+                  useCORS: true,
+                  backgroundColor: pdfBg,
+                  windowWidth: DESKTOP_W,
+                  windowHeight: contentH,
+                  scrollX: 0,
+                  scrollY: 0,
+                  onclone: (doc) => {
+                     const clonedHtml = doc.documentElement;
+                     const clonedBody = doc.body;
+                        const clonedElement = doc.getElementById('tlm-content');
+                     // Preserve the exact theme active when Print PDF was clicked.
+                     clonedHtml.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                     clonedBody.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+                     // Make the entire captured canvas use the PDF paper color.
+                     clonedHtml.style.backgroundColor = pdfBg;
+                     clonedBody.style.backgroundColor = pdfBg;
+                     clonedBody.style.width = DESKTOP_W + 'px';
+                     clonedBody.style.minWidth = DESKTOP_W + 'px';
+                     clonedBody.style.maxWidth = 'none';
+                     clonedBody.style.padding = '0';
+
+                        if (clonedElement) {
+                           clonedElement.style.backgroundColor = pdfBg;
+                           clonedElement.style.boxSizing = 'border-box';
+                           clonedElement.style.padding = `${MARGIN_IN}in`;
+                           clonedElement.style.width = DESKTOP_W + 'px';
+                        }
+                     const nav = clonedBody.querySelector('.navbar');
+                     if (nav) nav.style.display = 'none';
+
+                     clonedBody.querySelectorAll(
+                        '.theme-toggle, #print-pdf, .copy-table-btn, .suffix-btn, .navbar-toggler'
+                     ).forEach((el) => {
+                        el.style.display = 'none';
+                     });
+
+                     // Keep CSS colors exact in the html2canvas clone.
+                     clonedBody.querySelectorAll('*').forEach((el) => {
+                        el.style.webkitPrintColorAdjust = 'exact';
+                        el.style.printColorAdjust = 'exact';
+                     });
+                  }
+               },
+               jsPDF: {
+                  unit: 'in',
+                  format: [pageW, pageH],
+                  orientation: pageW >= pageH ? 'landscape' : 'portrait'
+               },
+               pagebreak: {
+                  mode: ['css', 'legacy']
+               }
+            }).save();
+         } catch (err) {
+            console.error('PDF export failed', err);
+         } finally {
+            // Restore the page exactly to its pre-export state.
+            body.style.width = original.bodyWidth;
+            body.style.maxWidth = original.bodyMaxWidth;
+            body.style.minWidth = original.bodyMinWidth;
+            body.style.zoom = original.bodyZoom;
+            body.style.paddingTop = original.bodyPadTop;
+            body.style.paddingLeft = original.bodyPadLeft;
+            body.style.paddingRight = original.bodyPadRight;
+            body.style.overflow = original.bodyOverflow;
+            body.style.backgroundColor = original.bodyBackground;
+
+            html.style.width = original.htmlWidth;
+            html.style.overflow = original.htmlOverflow;
+            html.style.backgroundColor = original.htmlBackground;
+
+            if (navbar) navbar.style.display = original.navbarDisplay;
+
+            if (collapse) {
+               collapse.className = original.collapseClass;
+
+               if (original.collapseStyle === null) {
+                  collapse.removeAttribute('style');
+               } else {
+                  collapse.setAttribute('style', original.collapseStyle);
+               }
+            }
+
+            element.style.backgroundColor = original.elementBackground;
+            element.style.padding = original.elementPadding;
+            element.style.boxSizing = original.elementBoxSizing;
+            element.style.width = original.elementWidth;
+
+            hiddenEls.forEach(([el, display]) => {
+               el.style.display = display;
+            });
+         }
+});
+
+      document.addEventListener('DOMContentLoaded', () => {
+         initTheme();
+         document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+         updateCurrentDateTime();
+         setInterval(updateCurrentDateTime, 1000);
+         const toggler = document.querySelector('.navbar-toggler');
+         if (toggler) toggler.addEventListener('click', () => toggler.classList.toggle('rotated'));
+      });
+   </script>
+</body>
+</html>
