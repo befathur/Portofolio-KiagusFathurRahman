@@ -1119,11 +1119,14 @@
   // Mock CandleTL live API used by tlm/dev-mode.html
   var _origFetch = window.fetch;
   window.fetch = function (url, opts) {
-    var u = String(url || '');
+    var u = String((url && url.url) || url || '');
     if (u.indexOf('candletl/live') !== -1 || u.indexOf('candletl/health') !== -1) {
       if (u.indexOf('health') !== -1) {
         var health = { ok: true, mode: 'demo' };
         return Promise.resolve({ ok: true, json: function () { return Promise.resolve(health); }, text: function () { return Promise.resolve(JSON.stringify(health)); } });
+      }
+      if (window.CandleTLReplay) {
+        return window.CandleTLReplay.fetchSnapshot();
       }
       var now = Date.now();
       var LEVELS = ['Green', 'Yellow', 'Orange', 'Red'];
