@@ -215,13 +215,39 @@
       }
 
       /* About */
-      .about-grid { display: grid; grid-template-columns: 280px 1fr; gap: 48px; align-items: start; }
+      .about-grid {
+         display: grid;
+         grid-template-columns: minmax(140px, 0.75fr) minmax(200px, 0.9fr) minmax(260px, 1.35fr);
+         gap: 40px;
+         align-items: center;
+      }
+      .about-heading {
+         display: flex;
+         flex-direction: column;
+         justify-content: center;
+         align-items: flex-start;
+         gap: 10px;
+      }
+      .about-heading .section-label { margin-bottom: 0; }
+      .about-heading h2 {
+         margin-bottom: 0;
+         writing-mode: horizontal-tb;
+         line-height: 1.15;
+      }
       .about-photo {
-         width: 100%; aspect-ratio: 3/4; object-fit: cover;
-         border-radius: var(--radius); border: 1px solid var(--border);
-         background: var(--bg-soft); box-shadow: var(--glow);
+         width: 100%;
+         max-width: 320px;
+         margin: 0 auto;
+         aspect-ratio: 3/4;
+         object-fit: cover;
+         border-radius: var(--radius);
+         border: 1px solid var(--border);
+         background: var(--bg-soft);
+         box-shadow: var(--glow);
+         display: block;
       }
       .about-text p { color: var(--text-muted); margin-bottom: 16px; font-size: 1.02rem; }
+      .about-text p:last-child { margin-bottom: 0; }
       .about-text strong { color: var(--text); font-weight: 600; }
 
       /* Focus work */
@@ -430,17 +456,107 @@
       footer a { color: var(--accent); }
       footer a:hover { text-decoration: underline; }
 
+      /* Desktop / tablet landscape: wide dashboard */
+      .hero-visual {
+         max-width: 100%;
+      }
+      .hero-visual .chart-placeholder { height: 140px; }
+      .hero-visual .mini-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
       @media (max-width: 960px) {
-         .hero-inner, .about-grid, .project-split, .hsb-cta, .two-col { grid-template-columns: 1fr; }
+         .project-split, .hsb-cta, .two-col { grid-template-columns: 1fr; }
+         .about-grid {
+            grid-template-columns: minmax(120px, 0.7fr) minmax(160px, 0.85fr) minmax(200px, 1.2fr);
+            gap: 22px;
+            align-items: center;
+         }
+         .about-photo { max-width: 240px; }
          .focus-grid { grid-template-columns: 1fr 1fr; }
-         .hero-visual { order: -1; }
-         .kpi-row { grid-template-columns: repeat(2, 1fr); }
          .btn-enter { width: 100%; justify-content: center; }
          .nav-links { display: none; }
          .scroll-hint { display: none; }
+
+         /* Keep name + dashboard side-by-side on tablet/mobile */
+         .hero {
+            min-height: auto;
+            padding: 88px 0 40px;
+         }
+         .hero-inner {
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.9fr);
+            gap: 18px;
+            align-items: center;
+         }
+         .hero-visual {
+            order: 0;
+            padding: 14px;
+            border-radius: 16px;
+            /* Portrait-oriented card */
+            aspect-ratio: 3 / 4;
+            max-height: 340px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+         }
+         .hero h1 { font-size: clamp(1.45rem, 5.2vw, 2.2rem); margin-bottom: 10px; }
+         .type-row { font-size: 0.85rem; margin-bottom: 12px; min-height: 1.3em; }
+         .contact-list { font-size: 0.75rem; gap: 6px; }
+         .contact-list svg { width: 13px; height: 13px; }
+         .hero-cta { margin-top: 14px; gap: 8px; }
+         .hero-cta .btn-primary,
+         .hero-cta .btn-ghost { padding: 8px 12px; font-size: 0.75rem; border-radius: 10px; }
+         .kpi-row {
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 8px;
+         }
+         .kpi { padding: 8px 6px; border-radius: 10px; }
+         .kpi strong { font-size: 0.85rem; }
+         .kpi span, .kpi .up, .kpi .down { font-size: 0.6rem; }
+         .hero-visual .chart-placeholder {
+            height: auto;
+            flex: 1 1 auto;
+            min-height: 72px;
+            margin-bottom: 8px;
+         }
+         .hero-visual .mini-cards {
+            grid-template-columns: 1fr;
+            gap: 6px;
+         }
+         .mini-card { padding: 8px 10px; font-size: 0.65rem; }
+         .mini-card strong { font-size: 0.72rem; margin-bottom: 2px; }
       }
       @media (max-width: 560px) {
          .focus-grid { grid-template-columns: 1fr; }
+         .about-grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+            text-align: left;
+         }
+         .about-heading { align-items: flex-start; }
+         .about-photo { max-width: 280px; }
+         .hero-inner {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+            gap: 12px;
+         }
+         .hero-visual {
+            aspect-ratio: 3 / 4.2;
+            max-height: 280px;
+            padding: 10px;
+         }
+         .hero h1 { font-size: clamp(1.25rem, 6vw, 1.7rem); }
+         .eyebrow { font-size: 0.65rem; margin-bottom: 10px; }
+         .contact-list { display: none; } /* free vertical space; CTA remains */
+         .hero-cta { flex-direction: column; align-items: stretch; }
+         .kpi-row { grid-template-columns: 1fr 1fr; gap: 4px; }
+         .kpi strong { font-size: 0.78rem; }
+         .hero-visual .chart-placeholder { min-height: 56px; }
+         .hero-visual .mini-cards { display: none; } /* keep portrait dashboard compact */
+      }
+      @media (max-width: 400px) {
+         .hero-inner { gap: 8px; }
+         .hero-visual { max-height: 240px; }
+         .hero h1 { font-size: 1.15rem; }
       }
    </style>
 </head>
@@ -518,10 +634,12 @@
    <!-- ABOUT -->
    <section id="about">
       <div class="container">
-         <p class="section-label reveal">About</p>
-         <h2 class="reveal reveal-delay-1">About Me</h2>
          <div class="about-grid">
-            <img class="about-photo reveal reveal-left" src="images/about-me.png" alt="Kiagus Fathur Rahman" />
+            <div class="about-heading reveal reveal-left">
+               <p class="section-label">About</p>
+               <h2>About Me</h2>
+            </div>
+            <img class="about-photo reveal reveal-scale" src="images/about-me.png" alt="Kiagus Fathur Rahman" />
             <div class="about-text reveal reveal-right">
                <p>
                   Hi, I'm <strong>Kiagus Fathur Rahman</strong> — a results-driven <strong>Data Analyst and Analytics Engineer</strong>
@@ -732,6 +850,22 @@
                   Architecture: MT5 → C++ API → Google Sheets → Looker Studio.
                </div>
                <img class="project-img" src="images/HSB-ManagementReport.jpg" alt="[HSB] Management Report" />
+            </div>
+         </article>
+
+         <article class="project reveal">
+            <span class="project-tag">HSB Investasi</span>
+            <h3>[HSB] Risk Prevention System</h3>
+            <p class="meta-line"><strong>Tools:</strong> Python + Google Sheets + Outlook API + Bridge API</p>
+            <div class="project-split">
+               <div class="project-desc" style="margin:0">
+                  Automated backend for risk analytics and mitigation targeting potential toxic clients and volatile market conditions.
+                  <ul>
+                     <li>Actions: move account to A-Book, move to a wider-spread group, or auto widen spread markup</li>
+                     <li>Architecture: MT5 → Python API → MT5 final action (create group &amp; move account) or Bridge API → Google Sheets → Outlook</li>
+                  </ul>
+               </div>
+               <img class="project-img" src="images/risk-system-notifoutput.jpg" alt="[HSB] Risk Prevention System" />
             </div>
          </article>
 
